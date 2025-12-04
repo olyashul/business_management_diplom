@@ -1,0 +1,75 @@
+<form method="post" action="#" class="space-y-5" 
+      hx-post="{% url 'accounts:update_account_details' %}" 
+      hx-target="#account-details-content">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="form-label block text-sm font-medium text-gray-700 mb-1">Имя</label>
+            <input type="text" name="first_name" value="{{ form.first_name.value|default:user.first_name }}"
+                   class="w-full dotted-input">
+            {% if form.first_name.errors %}
+                <div class="text-red-500 text-xs mt-1">{{ form.first_name.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div>
+            <label class="form-label block text-sm font-medium text-gray-700 mb-1">Фамилия</label>
+            <input type="text" name="last_name" value="{{ form.last_name.value|default:user.last_name }}"
+                   class="w-full dotted-input">
+            {% if form.last_name.errors %}
+                <div class="text-red-500 text-xs mt-1">{{ form.last_name.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div>
+        <label class="form-label block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input type="email" name="email" value="{{ form.email.value|default:user.email }}"
+               class="w-full dotted-input">
+        {% if form.email.errors %}
+            <div class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div>
+        <label class="form-label block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+        <input type="tel" name="phone" value="{{ form.phone.value|default:user.phone }}"
+               class="w-full dotted-input" placeholder="+7 (XXX) XXX-XX-XX">
+        {% if form.phone.errors %}
+            <div class="text-red-500 text-xs mt-1">{{ form.phone.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div>
+        <label class="form-label block text-sm font-medium text-gray-700 mb-1">Должность</label>
+        <input type="text" name="position" value="{{ form.position.value|default:user.position }}"
+               class="w-full dotted-input" placeholder="Руководитель">
+        {% if form.position.errors %}
+            <div class="text-red-500 text-xs mt-1">{{ form.position.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div>
+        <label class="form-label block text-sm font-medium text-gray-700 mb-1">Дата рождения</label>
+        <input type="date" name="birth_date" value="{{ form.birth_date.value|date:'Y-m-d'|default:user.birth_date|date:'Y-m-d' }}"
+               class="w-full dotted-input">
+        {% if form.birth_date.errors %}
+            <div class="text-red-500 text-xs mt-1">{{ form.birth_date.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="flex gap-3 pt-4">
+        <button type="submit" class="btn-primary px-4 py-2">
+            СОХРАНИТЬ
+        </button>
+        
+        <button type="button"
+                hx-get="{% url 'accounts:account_details' %}" 
+                hx-target="#account-details-content" 
+                hx-swap="innerHTML"
+                class="btn-secondary px-4 py-2">
+            ОТМЕНА
+        </button>
+    </div>
+</form>

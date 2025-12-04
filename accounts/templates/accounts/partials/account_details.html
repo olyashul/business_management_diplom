@@ -1,0 +1,52 @@
+<div class="space-y-6">
+    <!-- Сетка с информацией -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Первый столбец -->
+        <div class="space-y-4">
+            <div>
+                <div class="text-normal text-gray-500 text-sm mb-1">Полное имя</div>
+                <div class="text-normal text-lg font-semibold">{{ user.get_full_name }}</div>
+            </div>
+            
+            <div>
+                <div class="text-normal text-gray-500 text-sm mb-1">Email</div>
+                <div class="text-normal text-lg font-semibold">{{ user.email }}</div>
+            </div>
+            
+            <div>
+                <div class="text-normal text-gray-500 text-sm mb-1">Должность</div>
+                <div class="text-normal text-lg font-semibold">{{ user.position|default:"Руководитель" }}</div>
+            </div>
+        </div>
+        
+        <!-- Второй столбец -->
+        <div class="space-y-4">
+            <div>
+                <div class="text-normal text-gray-500 text-sm mb-1">Телефон</div>
+                <div class="text-normal text-lg font-semibold">
+                    {% if user.phone %}
+                        {{ user.phone }}
+                    {% else %}
+                        Не указан
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <div class="text-normal text-gray-500 text-sm mb-1">Дата рождения</div>
+                <div class="text-normal text-lg font-semibold">
+                    {% if user.birth_date %}
+                        {{ user.birth_date|date:"d.m.Y" }}
+                    {% else %}
+                        Не указана
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <div class="text-normal text-gray-500 text-sm mb-1">Дата регистрации</div>
+                <div class="text-normal text-lg font-semibold">{{ user.date_joined|date:"d.m.Y" }}</div>
+            </div>
+        </div>
+    </div>
+</div>

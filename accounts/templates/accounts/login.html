@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-100px)] flex items-center justify-center px-4 py-8">
+    <div class="card-style p-6 form-container">
+        <div class="text-center mb-6">
+            <h1 class="header-title mb-3">ВХОД В СИСТЕМУ</h1>
+            <div class="text-normal text-gray-600">KORP - Управление торговым предприятием</div>
+        </div>
+        
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="p-3 rounded-lg {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700{% else %}bg-red-50 border border-red-200 text-red-700{% endif %}">
+                <div class="text-normal">{{ message }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if form.errors %}
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div class="text-normal text-red-700">Пожалуйста, исправьте ошибки ниже.</div>
+        </div>
+        {% endif %}
+        
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            
+            <div>
+                <label class="form-label block text-sm font-medium text-gray-700 mb-1">EMAIL</label>
+                <input type="email" name="username" id="id_username" required
+                       class="w-full dotted-input"
+                       placeholder="you@example.com"
+                       value="{{ form.username.value|default:'' }}">
+                {% if form.username.errors %}
+                <div class="text-red-500 text-xs mt-1">{{ form.username.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="form-label block text-sm font-medium text-gray-700 mb-1">ПАРОЛЬ</label>
+                <div class="relative">
+                    <input type="password" name="password" id="id_password" required
+                           class="w-full dotted-input pr-10"
+                           placeholder="••••••••">
+                    <button type="button" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 toggle-password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                {% if form.password.errors %}
+                <div class="text-red-500 text-xs mt-1">{{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center justify-between pt-3">
+                <div class="flex items-center">
+                    <input type="checkbox" id="remember" name="remember" class="mr-2 w-4 h-4">
+                    <label for="remember" class="text-normal text-gray-600 text-sm">Запомнить меня</label>
+                </div>
+                <a href="#" onclick="showComingSoon('Восстановление пароля')" class="text-normal text-blue-600 hover:text-blue-800 text-sm">
+                    Забыли пароль?
+                </a>
+            </div>
+            
+            <div class="pt-4">
+                <button type="submit" class="w-full btn-primary py-2.5">
+                    ВОЙТИ
+                </button>
+            </div>
+            
+            <div class="text-center pt-5 border-t border-gray-200">
+                <div class="text-normal text-gray-600 mb-3 text-sm">Нет аккаунта?</div>
+                <a href="{% url 'accounts:register' %}" 
+                   class="inline-block w-full btn-secondary py-2.5">
+                    ЗАРЕГИСТРИРОВАТЬСЯ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

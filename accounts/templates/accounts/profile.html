@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль руководителя{% endblock %}
+
+{% block content %}
+<div class="profile-container px-4 py-6">
+    <!-- Заголовок -->
+    <div class="mb-8 text-center">
+        <h1 class="header-title mb-2">ПРОФИЛЬ РУКОВОДИТЕЛЯ</h1>
+        <div class="text-normal text-gray-600 text-sm">Управление личными данными</div>
+    </div>
+    
+    <!-- Основной контент профиля -->
+    <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Левая колонка - аватар и информация -->
+        <div class="lg:w-1/3">
+            <!-- Карточка с аватаром -->
+            <div class="card-style p-6 mb-6">
+                <div class="flex flex-col items-center">
+                    <!-- Аватар -->
+                    <div class="w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white mb-4">
+                        <span class="text-3xl font-bold">
+                            {{ user.first_name|first }}{{ user.last_name|first }}
+                        </span>
+                    </div>
+                    
+                    <!-- Основная информация -->
+                    <div class="text-center mb-4">
+                        <h2 class="text-normal text-xl font-bold mb-1">{{ user.get_full_name }}</h2>
+                        <p class="text-normal text-gray-600 text-sm">{{ user.position|default:"Руководитель" }}</p>
+                        <p class="text-normal text-gray-500 text-xs mt-1">{{ user.email }}</p>
+                    </div>
+                    
+                    <!-- Кнопки действий -->
+                    <div class="w-full space-y-2">
+                        <button 
+                            hx-get="{% url 'accounts:edit_account_details' %}" 
+                            hx-target="#account-details-content" 
+                            hx-swap="innerHTML"
+                            class="w-full btn-primary py-2"
+                        >
+                            Редактировать профиль
+                        </button>
+                        
+                        <a href="{% url 'accounts:change_password' %}" 
+                           class="block w-full btn-secondary py-2 text-center"
+                        >
+                            Сменить пароль
+                        </a>
+                        
+                        <a href="{% url 'accounts:logout' %}" 
+                           class="block w-full py-2 border-2 border-red-600 text-red-600 text-center rounded-lg hover:bg-red-50 transition-colors text-normal font-bold"
+                        >
+                            Выйти из системы
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая колонка - детали профиля -->
+        <div class="lg:w-2/3">
+            <div class="card-style p-6">
+                <h3 class="header-title mb-6 text-center">ЛИЧНАЯ ИНФОРМАЦИЯ</h3>
+                
+                <div id="account-details-content">
+                    {% include "accounts/partials/account_details.html" %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

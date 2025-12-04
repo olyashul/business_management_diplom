@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация руководителя{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4 py-8">
+    <div class="card-style p-8 w-full max-w-[800px]">
+        <div class="text-center mb-8">
+            <h1 class="header-title mb-4">РЕГИСТРАЦИЯ РУКОВОДИТЕЛЯ</h1>
+            <div class="text-normal text-gray-600">Создание учетной записи для управления торговым предприятием</div>
+        </div>
+        
+        <form method="post" class="space-y-8" 
+              hx-post="{% url 'accounts:register' %}" 
+              hx-target="#main-content">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Левая колонка -->
+                <div class="space-y-8">
+                    <div>
+                        <label class="form-label">ИМЯ *</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">ФАМИЛИЯ *</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">EMAIL *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Правая колонка -->
+                <div class="space-y-8">
+                    <div>
+                        <label class="form-label">ДАТА РОЖДЕНИЯ *</label>
+                        {{ form.birth_date }}
+                        {% if form.birth_date.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.birth_date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">ПАРОЛЬ *</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">ПОДТВЕРДИТЕ ПАРОЛЬ *</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pt-4">
+                <div class="flex items-start">
+                    <input type="checkbox" id="terms" required class="mt-1 mr-3 w-5 h-5">
+                    <label for="terms" class="text-normal text-gray-600">
+                        Я согласен с условиями использования и политикой конфиденциальности
+                    </label>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-4 pt-8">
+                <button type="submit"
+                        class="flex-1 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg hover:from-blue-700 hover:to-blue-900 transition-all text-normal font-bold">
+                    СОЗДАТЬ АККАУНТ
+                </button>
+                
+                <a href="{% url 'accounts:login' %}" 
+                   hx-get="{% url 'accounts:login' %}" 
+                   hx-target="#main-content"
+                   class="flex-1 py-4 border-2 border-blue-600 text-blue-600 rounded-lg text-center hover:bg-blue-50 transition-all text-normal font-bold">
+                    УЖЕ ЕСТЬ АККАУНТ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Стилизация полей формы
+        const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+        inputs.forEach(input => {
+            input.className = 'form-input';
+        });
+        
+        // Для поля даты рождения
+        const birthDateInput = document.querySelector('input[name="birth_date"]');
+        if (birthDateInput) {
+            birthDateInput.type = 'date';
+            birthDateInput.className = 'form-input';
+        }
+    });
+</script>
+{% endblock %}
