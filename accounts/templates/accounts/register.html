@@ -1,116 +1,166 @@
 {% extends "base.html" %}
 
-{% block title %}Регистрация руководителя{% endblock %}
+{% block title %}Регистрация{% endblock %}
 
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center px-4 py-8">
-    <div class="card-style p-8 w-full max-w-[800px]">
-        <div class="text-center mb-8">
-            <h1 class="header-title mb-4">РЕГИСТРАЦИЯ РУКОВОДИТЕЛЯ</h1>
-            <div class="text-normal text-gray-600">Создание учетной записи для управления торговым предприятием</div>
+<div class="min-h-[calc(100vh-100px)] flex items-center justify-center px-4 py-8">
+     <div class="card-style p-6 w-full max-w-md">
+        <div class="text-center mb-6" style='margin-bottom: 50px'>
+            <h1 class="header-title mb-3">РЕГИСТРАЦИЯ РУКОВОДИТЕЛЯ</h1>
         </div>
         
-        <form method="post" class="space-y-8" 
-              hx-post="{% url 'accounts:register' %}" 
-              hx-target="#main-content">
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="p-3 rounded-lg {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700{% else %}bg-red-50 border border-red-200 text-red-700{% endif %}">
+                <div class="text-normal">{{ message }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form method="post" class="space-y-5" novalidate>
             {% csrf_token %}
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <!-- Левая колонка -->
-                <div class="space-y-8">
+                <div class="space-y-5">
                     <div>
-                        <label class="form-label">ИМЯ *</label>
-                        {{ form.first_name }}
+                        <label class="form-label block text-sm font-medium text-gray-700 mb-1">ИМЯ *</label>
+                        <input type="text" name="first_name" 
+                               class="w-full dotted-input"
+                               placeholder="ИМЯ"
+                               value="{{ form.first_name.value|default:'' }}"
+                               required>
                         {% if form.first_name.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ form.first_name.errors.0 }}</div>
+                        <div class="text-red-500 text-xs mt-1">{{ form.first_name.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <div>
-                        <label class="form-label">ФАМИЛИЯ *</label>
-                        {{ form.last_name }}
+                        <label class="form-label block text-sm font-medium text-gray-700 mb-1">ФАМИЛИЯ *</label>
+                        <input type="text" name="last_name" 
+                               class="w-full dotted-input"
+                               placeholder="ФАМИЛИЯ"
+                               value="{{ form.last_name.value|default:'' }}"
+                               required>
                         {% if form.last_name.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ form.last_name.errors.0 }}</div>
+                        <div class="text-red-500 text-xs mt-1">{{ form.last_name.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <div>
-                        <label class="form-label">EMAIL *</label>
-                        {{ form.email }}
+                        <label class="form-label block text-sm font-medium text-gray-700 mb-1">EMAIL *</label>
+                        <input type="email" name="email" 
+                               class="w-full dotted-input"
+                               placeholder="you@example.com"
+                               value="{{ form.email.value|default:'' }}"
+                               required>
                         {% if form.email.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</div>
+                        <div class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</div>
                         {% endif %}
                     </div>
                 </div>
                 
                 <!-- Правая колонка -->
-                <div class="space-y-8">
+                <div class="space-y-5">
                     <div>
-                        <label class="form-label">ДАТА РОЖДЕНИЯ *</label>
-                        {{ form.birth_date }}
+                        <label class="form-label block text-sm font-medium text-gray-700 mb-1">ДАТА РОЖДЕНИЯ *</label>
+                        <input type="date" name="birth_date" 
+                               class="w-full dotted-input"
+                               value="{{ form.birth_date.value|default:'' }}"
+                               required>
                         {% if form.birth_date.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ form.birth_date.errors.0 }}</div>
+                        <div class="text-red-500 text-xs mt-1">{{ form.birth_date.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <div>
-                        <label class="form-label">ПАРОЛЬ *</label>
-                        {{ form.password1 }}
+                        <label class="form-label block text-sm font-medium text-gray-700 mb-1">ПАРОЛЬ *</label>
+                        <div class="relative">
+                            <input type="password" name="password1" 
+                                   class="w-full dotted-input pr-10"
+                                   placeholder="••••••••"
+                                   required>
+                            <button type="button" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                         {% if form.password1.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ form.password1.errors.0 }}</div>
+                        <div class="text-red-500 text-xs mt-1">
+                            {% for error in form.password1.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
                         {% endif %}
                     </div>
                     
                     <div>
-                        <label class="form-label">ПОДТВЕРДИТЕ ПАРОЛЬ *</label>
-                        {{ form.password2 }}
+                        <label class="form-label block text-sm font-medium text-gray-700 mb-1">ПОДТВЕРДИТЕ ПАРОЛЬ *</label>
+                        <div class="relative">
+                            <input type="password" name="password2" 
+                                   class="w-full dotted-input pr-10"
+                                   placeholder="••••••••"
+                                   required>
+                            <button type="button" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                         {% if form.password2.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ form.password2.errors.0 }}</div>
+                        <div class="text-red-500 text-xs mt-1">
+                            {% for error in form.password2.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
             
-            <div class="pt-4">
-                <div class="flex items-start">
-                    <input type="checkbox" id="terms" required class="mt-1 mr-3 w-5 h-5">
-                    <label for="terms" class="text-normal text-gray-600">
-                        Я согласен с условиями использования и политикой конфиденциальности
-                    </label>
-                </div>
-            </div>
-            
-            <div class="flex flex-col md:flex-row gap-4 pt-8">
-                <button type="submit"
-                        class="flex-1 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg hover:from-blue-700 hover:to-blue-900 transition-all text-normal font-bold">
+            <div class="pt-6">
+                <button type="submit" class="w-full btn-primary py-3">
                     СОЗДАТЬ АККАУНТ
                 </button>
-                
+            </div>
+            
+            <div class="text-center pt-5 border-t border-gray-200">
+                <div class="text-normal text-gray-600 mb-3 text-sm">Уже есть аккаунт?</div>
                 <a href="{% url 'accounts:login' %}" 
-                   hx-get="{% url 'accounts:login' %}" 
-                   hx-target="#main-content"
-                   class="flex-1 py-4 border-2 border-blue-600 text-blue-600 rounded-lg text-center hover:bg-blue-50 transition-all text-normal font-bold">
-                    УЖЕ ЕСТЬ АККАУНТ
+                   class="inline-block w-full btn-secondary py-3">
+                    ВОЙТИ В СИСТЕМУ
                 </a>
             </div>
         </form>
     </div>
 </div>
 
+{% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Стилизация полей формы
-        const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
-        inputs.forEach(input => {
-            input.className = 'form-input';
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    // Функция для показа/скрытия пароля
+    function togglePasswordVisibility(button) {
+        const input = button.parentElement.querySelector('input');
+        const icon = button.querySelector('i');
         
-        // Для поля даты рождения
-        const birthDateInput = document.querySelector('input[name="birth_date"]');
-        if (birthDateInput) {
-            birthDateInput.type = 'date';
-            birthDateInput.className = 'form-input';
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
         }
+    }
+    
+    // Назначаем обработчики для всех кнопок показа пароля
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            togglePasswordVisibility(this);
+        });
     });
+});
 </script>
+{% endblock %}
 {% endblock %}

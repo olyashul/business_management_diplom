@@ -4,10 +4,9 @@
 
 {% block content %}
 <div class="min-h-[calc(100vh-100px)] flex items-center justify-center px-4 py-8">
-    <div class="card-style p-6 form-container">
+    <div class="card-style p-6 w-full max-w-md">
         <div class="text-center mb-6">
             <h1 class="header-title mb-3">ВХОД В СИСТЕМУ</h1>
-            <div class="text-normal text-gray-600">KORP - Управление торговым предприятием</div>
         </div>
         
         {% if messages %}
@@ -20,9 +19,13 @@
         </div>
         {% endif %}
         
-        {% if form.errors %}
+        {% if form.non_field_errors %}
         <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <div class="text-normal text-red-700">Пожалуйста, исправьте ошибки ниже.</div>
+            <div class="text-normal text-red-700">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
         

@@ -14,32 +14,28 @@ from .forms import (
 )
 from .models import ManagementUser
 
-
-# Регистрация нового руководителя
+# Регистрация нового пользователя с автоматическим логином и поддержкой HTMX
 def register(request):
-    # Если пользователь уже авторизован, перенаправляем на главную
+    # Если пользователь уже авторизован, перенаправляем на профиль
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('accounts:profile')
     
     if request.method == 'POST':
         form = ManagementUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, f'Регистрация успешна! Добро пожаловать, {user.get_full_name()}!')
             
             # Автоматически логиним пользователя после регистрации
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             
             if request.headers.get('HX-Request'):
                 return HttpResponse(headers={'HX-Redirect': reverse('home')})
-            return redirect('home')
+            return redirect('accounts:profile')
     else:
         form = ManagementUserCreationForm()
-    
     return render(request, 'accounts/register.html', {'form': form})
 
-
-# Вход в систему
+# Вход в систему с поддержкой HTMX
 def login_view(request):
     # Если пользователь уже авторизован, перенаправляем на главную
     if request.user.is_authenticated:
@@ -50,44 +46,35 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            messages.success(request, f'Добро пожаловать, {user.get_full_name()}!')
             
             if request.headers.get('HX-Request'):
                 return HttpResponse(headers={'HX-Redirect': reverse('home')})
             return redirect('home')
     else:
         form = ManagementUserLoginForm()
-    
     return render(request, 'accounts/login.html', {'form': form})
 
-
-# Выход из системы
+# Выход из системы с поддержкой HTMX
 def logout_view(request):
     logout(request)
-    messages.success(request, 'Вы успешно вышли из системы.')
-    
     if request.headers.get('HX-Request'):
         return HttpResponse(headers={'HX-Redirect': reverse('accounts:login')})
     return redirect('accounts:login')
 
-
-# Главная страница
+# Главная страница: перенаправление на профиль для авторизованных пользователей
 def home_view(request):
-    """Перенаправление на профиль"""
     if not request.user.is_authenticated:
         return redirect('accounts:login')
-    
     return redirect('accounts:profile')
 
-
-# Профиль пользователя
+# Профиль пользователя с возможностью обновления данных и поддержкой HTMX
 @login_required(login_url='/accounts/login/')
 def profile_view(request):
     if request.method == 'POST':
         form = ManagementUserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Профиль успешно обновлен!')
+            messages.success(request, 'Профиль успешно обновлен')
             
             if request.headers.get('HX-Request'):
                 return HttpResponse(headers={'HX-Redirect': reverse('accounts:profile')})
@@ -100,15 +87,13 @@ def profile_view(request):
         'user': request.user,
     })
 
-
-# Детали профиля (только чтение) - для HTMX
+# Детали профиля (только чтение) для HTMX - отображение данных пользователя
 @login_required(login_url='/accounts/login/')
 def account_details(request):
-    user = ManagementUser.objects.get(id=request.user.id)
+    user = request.user  # Используем request.user напрямую для простоты
     return TemplateResponse(request, 'accounts/partials/account_details.html', {'user': user})
 
-
-# Форма редактирования профиля - для HTMX
+# Форма редактирования профиля для HTMX - показ формы редактирования
 @login_required(login_url='/accounts/login/')
 def edit_account_details(request):
     form = ManagementUserUpdateForm(instance=request.user)
@@ -117,17 +102,14 @@ def edit_account_details(request):
         'form': form
     })
 
-
-# Обновление данных профиля - для HTMX
+# Обновление данных профиля для HTMX - обработка формы и возврат обновлённых данных
 @login_required(login_url='/accounts/login/')
 def update_account_details(request):
     if request.method == 'POST':
         form = ManagementUserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.clean()  # Вызываем clean метод модели
-            user.save()
-            updated_user = ManagementUser.objects.get(id=user.id)
+            user = form.save()
+            updated_user = user  # Нет необходимости в дополнительном запросе, если save возвращает объект
             
             if request.headers.get('HX-Request'):
                 return TemplateResponse(request, 'accounts/partials/account_details.html', {
@@ -144,8 +126,7 @@ def update_account_details(request):
         return HttpResponse(headers={'HX-Redirect': reverse('accounts:profile')})
     return redirect('accounts:profile')
 
-
-# Смена пароля
+# Смена пароля с поддержкой HTMX
 @login_required(login_url='/accounts/login/')
 def change_password(request):
     if request.method == 'POST':
@@ -159,9 +140,7 @@ def change_password(request):
             return redirect('accounts:profile')
     else:
         form = ManagementUserPasswordChangeForm(user=request.user)
-    
     return render(request, 'accounts/change_password.html', {'form': form})
-
 
 # Список пользователей (только для администраторов)
 @login_required(login_url='/accounts/login/')
@@ -170,6 +149,5 @@ def user_list(request):
     if not request.user.is_superuser:
         messages.error(request, 'У вас нет прав для просмотра этого раздела.')
         return redirect('home')
-    
     users = ManagementUser.objects.all().order_by('-date_joined')
     return render(request, 'accounts/user_list.html', {'users': users})
