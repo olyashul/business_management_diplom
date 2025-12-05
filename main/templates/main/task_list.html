@@ -1,0 +1,5 @@
+{% comment %} {% for task in tasks %}
+    {% include 'main/task_item.html' with task=task %}
+{% empty %}
+    <p class="text-muted">Нет задач. Добавьте первую!</p>
+{% endfor %} {% endcomment %}

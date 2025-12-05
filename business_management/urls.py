@@ -10,10 +10,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # Главная страница
-    path('', home_view, name='home'),
+    path('', home_view,  name='main'),
     
     # Маршруты для аккаунтов
     path('accounts/', include('accounts.urls')),
+    # Маршруты для main (dashboard, задачи и т.д.)
+    path('main/', include('main.urls', namespace='main')),
+    
 ]
 
 if settings.DEBUG:

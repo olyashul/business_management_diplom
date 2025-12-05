@@ -1,0 +1,15 @@
+<form hx-post="{% url 'main:add_task' %}" 
+      hx-target="#task-list" 
+      hx-swap="innerHTML"
+      hx-on::after-request="document.getElementById('addTaskModal').querySelector('.btn-close').click();"
+      class="needs-validation" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.title.label_tag }}
+        {{ form.title }}
+        {% if form.title.errors %}
+            <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+        {% endif %}
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить задачу</button>
+</form>

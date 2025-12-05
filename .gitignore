@@ -1,13 +1,14 @@
 venv/
-.pylintrc
 __pycache__/
-
-.vscode
-.idea
+*.pyc
+*.pyo
 .env
-django.log
-security.log
-
 db.sqlite3
 media/
-products/
+products/  # Your custom folder?
+.vscode
+.idea
+staticfiles/
+migrations/  # Ignore migration files if auto-generated
+*.log
+.DS_Store  # If on Mac

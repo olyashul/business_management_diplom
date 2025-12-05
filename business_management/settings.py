@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'accounts.apps.AccountsConfig',
+    'main', 
 ]
 
 MIDDLEWARE = [
@@ -58,7 +59,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'templates',  # ← добавьте эту строку
+            BASE_DIR / 'templates',  
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -127,7 +128,10 @@ USE_TZ = True
 
 """ДЛЯ ОТОБРАЖЕНИЯ КАРТИНОК"""
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # Где лежат исходные файлы
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Куда collectstatic соберет файлы
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -48,8 +48,8 @@ def login_view(request):
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             
             if request.headers.get('HX-Request'):
-                return HttpResponse(headers={'HX-Redirect': reverse('home')})
-            return redirect('home')
+                return HttpResponse(headers={'HX-Redirect': reverse('main')})
+            return redirect('main')
     else:
         form = ManagementUserLoginForm()
     return render(request, 'accounts/login.html', {'form': form})

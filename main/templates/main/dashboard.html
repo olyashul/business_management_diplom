@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style = 'margin-left: 150px'>
+    <div class="flex gap-6">
+        <!-- Левый блок -->
+        <div class="flex flex-col gap-6" style="width: 450px;">
+            <!-- Карточка Сегодня -->
+            <div class="card-style p-6" style="min-height: 200px; border: 1px solid #6b848d;">
+                <div class="flex items-center mb-6">
+                    <img src="{% static 'main/icon_calend.png' %}" alt="Сегодня" class="w-6 h-6 mr-3">
+                    <div>
+                        <h2 class="header-title mb-1">Сегодня</h2>
+                        <div class="text-sm text-gray-600">{{ current_date|date:"l, d.m.Y" }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <img src="{% static 'main/icon_hour.png' %}" alt="Смена" class="w-5 h-5 mr-3">
+                    <div>
+                        <div class="text-sm text-gray-600">Смена:</div>
+                        <div class="font-bold text-lg text-gray-900">{{ shift_time }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Форма добавления задачи -->
+            <div class="card-style p-6" style="border: 1px solid #6b848d;">
+                <h3 class="header-title mb-4">Добавить задачу</h3>
+                <form id="add-task-form" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">
+                            Название задачи:
+                        </label>
+                        <input type="text" name="title" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Введите название задачи">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">
+                            Дата выполнения:
+                        </label>
+                        <input type="date" name="due_date" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <button type="button" onclick="addTask()" class="w-full btn-primary py-3 flex items-center justify-center">
+                        <img src="{% static 'main/icon_add.png' %}" alt="Добавить" class="w-5 h-5 mr-2">
+                        Добавить задачу
+                    </button>
+                </form>
+                <div id="loading" class="mt-2 text-sm text-gray-500 hidden">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Добавляем...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая карточка: Задачи -->
+        <div class="card-style p-6" style="width: 700px; min-height: 600px; border: 1px solid #6b848d;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="header-title">Задачи</h2>
+            </div>
+            
+            <!-- Контейнер для задач -->
+            <div class="tasks-container" id="tasks-container" style="max-height: 500px; overflow-y: auto; padding-right: 8px;">
+                {% for task in tasks %}
+                    <div class="task-item p-4 mb-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
+                         id="task-{{ task.id }}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="mr-3">
+                                </div>
+                                <div>
+                                    <span class="text-gray-900 font-medium">
+                                        {{ task.title }}
+                                    </span>
+                                    <div class="text-sm text-gray-500 mt-1">
+                                        <i class="far fa-calendar mr-1"></i>
+                                        {{ task.date|date:"d.m.Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Кнопка удаления -->
+                            <button onclick="deleteTask({{ task.id }})"
+                                    class="text-red-500 hover:text-red-700 transition-colors p-2 bg-transparent border-0 cursor-pointer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// CSRF токен для всех запросов
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+// Шаблон новой задачи (простой HTML)
+function createTaskHTML(task) {
+    return `
+        <div class="task-item p-4 mb-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
+             id="task-${task.id}">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="mr-3">
+                        <i class="fas fa-tasks text-blue-500 text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-gray-900 font-medium">
+                            ${task.title}
+                        </span>
+                        <div class="text-sm text-gray-500 mt-1">
+                            <i class="far fa-calendar mr-1"></i>
+                            ${task.date}
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="deleteTask(${task.id})"
+                        class="text-red-500 hover:text-red-700 transition-colors p-2 bg-transparent border-0 cursor-pointer">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Добавление задачи
+function addTask() {
+    const form = document.getElementById('add-task-form');
+    const titleInput = form.querySelector('input[name="title"]');
+    const dateInput = form.querySelector('input[name="due_date"]');
+    const loading = document.getElementById('loading');
+    
+    if (!titleInput.value.trim() || !dateInput.value) {
+        alert('Заполните все поля');
+        return;
+    }
+    
+    loading.classList.remove('hidden');
+    
+    // Создаем временную задачу для отображения
+    const tempId = Date.now(); // Временный ID
+    const taskData = {
+        id: tempId,
+        title: titleInput.value,
+        date: formatDate(dateInput.value)
+    };
+    
+    // Сразу показываем задачу
+    const tasksContainer = document.getElementById('tasks-container');
+    tasksContainer.insertAdjacentHTML('afterbegin', createTaskHTML(taskData));
+    
+    // Отправляем запрос на сервер
+    const formData = new FormData(form);
+    
+    fetch("{% url 'main:add_task_view' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Если сервер вернул ID, обновляем временный ID
+        if (data.id) {
+            const tempTask = document.getElementById('task-' + tempId);
+            if (tempTask) {
+                tempTask.id = 'task-' + data.id;
+                tempTask.querySelector('button').setAttribute('onclick', `deleteTask(${data.id})`);
+            }
+        }
+        
+        // Очищаем форму
+        form.reset();
+        // Устанавливаем сегодняшнюю дату по умолчанию
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        
+        loading.classList.add('hidden');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loading.classList.add('hidden');
+        alert('Ошибка при добавлении задачи');
+    });
+}
+
+// Удаление задачи
+function deleteTask(taskId) {
+    if (!confirm('Удалить задачу?')) return;
+    
+    const taskElement = document.getElementById('task-' + taskId);
+    if (!taskElement) return;
+    
+    // Сразу удаляем из интерфейса
+    taskElement.style.opacity = '0.5';
+    taskElement.style.pointerEvents = 'none';
+    
+    // Отправляем запрос на сервер
+    fetch(`/main/delete-task/${taskId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            // Плавно скрываем и удаляем элемент
+            taskElement.style.transition = 'opacity 0.3s';
+            taskElement.style.opacity = '0';
+            setTimeout(() => {
+                taskElement.remove();
+            }, 300);
+        } else {
+            // Если ошибка - возвращаем обратно
+            taskElement.style.opacity = '1';
+            taskElement.style.pointerEvents = 'auto';
+            alert('Ошибка при удалении задачи');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        taskElement.style.opacity = '1';
+        taskElement.style.pointerEvents = 'auto';
+        alert('Ошибка при удалении задачи');
+    });
+}
+
+// Форматирование даты
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Устанавливаем сегодняшнюю дату по умолчанию
+    const dateInput = document.querySelector('input[name="due_date"]');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        dateInput.min = today;
+    }
+    
+    // Обработчик формы по Enter
+    const form = document.getElementById('add-task-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            addTask();
+        });
+        
+        // Фокус на поле ввода
+        form.querySelector('input[name="title"]').focus();
+    }
+});
+</script>
+{% endblock %}

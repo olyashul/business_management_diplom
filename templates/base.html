@@ -140,17 +140,18 @@
     <header class="header fixed top-0 left-0 w-full h-[46px] bg-white shadow-sm z-50">
         <div class="max-w-[1440px] mx-auto h-full px-4 relative">
             <!-- Иконка дома -->
-            <a href="{% url 'accounts:profile' %}" class="absolute top-1/2 transform -translate-y-1/2 left-6">
-                <div class="icon-btn">
-                    <i class="fas fa-home text-[#1565c0] text-lg"></i>
-                </div>
-            </a>
-            
-            <!-- Навигация с увеличенными расстояниями -->
-            <nav class="flex justify-center h-full items-center space-x-16"> <!-- Увеличил space-x-12 до space-x-16 -->
+            <!-- Иконка дома -->
+<a href="{% url 'main:dashboard' %}" class="absolute top-1/2 transform -translate-y-1/2 left-6">
+    <div class="icon-btn">
+        <i class="fas fa-home text-[#1565c0] text-lg"></i>
+    </div>
+</a>
+
+         
+            <nav class="flex justify-center h-full items-center space-x-24">  <!-- Было space-x-16 -->
                 <a href="#" onclick="showComingSoon('Продажи')" class="header-nav hover:text-blue-800 transition-colors">
-                    Продажи
-                </a>
+                     Продажи
+                 </a>
                 <a href="#" onclick="showComingSoon('Каталог')" class="header-nav hover:text-blue-800 transition-colors">
                     Каталог
                 </a>
@@ -161,15 +162,12 @@
                     Отчеты
                 </a>
             </nav>
-            
-            <!-- Иконка профиля -->
+
             <a href="{% url 'accounts:profile' %}" class="absolute top-1/2 transform -translate-y-1/2 right-6">
                 <div class="icon-btn">
                     <i class="fas fa-user text-[#1565c0] text-lg"></i>
                 </div>
             </a>
-            
-            <!-- Линия под шапкой -->
             <div class="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600"></div>
         </div>
     </header>
@@ -178,7 +176,7 @@
     <main class="pt-[60px] min-h-screen bg-gray-50">
         {% block content %}{% endblock %}
     </main>
-    
+
     <!-- Скрипты -->
     <script>
     function showComingSoon(feature) {

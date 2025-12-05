@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.html import strip_tags
 from datetime import date
 
-
 # Создаем кастомный менеджер пользователей
 class ManagementUserManager(BaseUserManager):
 
@@ -49,12 +48,7 @@ class ManagementUserManager(BaseUserManager):
 
 
 class ManagementUser(AbstractUser):
-    """
-    Пользователи системы - только руководство.
-    Суперпользователь: только email + password
-    Обычный пользователь: все поля
-    """
-    
+
     # Обязательные поля для всех пользователей
     email = models.EmailField(unique=True, max_length=254)
     first_name = models.CharField(max_length=50)
