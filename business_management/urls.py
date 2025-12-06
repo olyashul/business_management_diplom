@@ -16,6 +16,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     # Маршруты для main (dashboard, задачи и т.д.)
     path('main/', include('main.urls', namespace='main')),
+    path('products/', include('products.urls')), 
     
 ]
 

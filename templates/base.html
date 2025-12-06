@@ -4,13 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KORP - Управление торговым предприятием{% endblock %}</title>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <!-- Google Fonts для Charis SIL -->
     <link href="https://fonts.googleapis.com/css2?family=Charis+SIL:wght@400;700&display=swap" rel="stylesheet">
     
@@ -152,7 +147,7 @@
                 <a href="#" onclick="showComingSoon('Продажи')" class="header-nav hover:text-blue-800 transition-colors">
                      Продажи
                  </a>
-                <a href="#" onclick="showComingSoon('Каталог')" class="header-nav hover:text-blue-800 transition-colors">
+                <a href="{% url 'products:catalog_dashboard' %}" class="header-nav hover:text-blue-800 transition-colors">
                     Каталог
                 </a>
                 <a href="#" onclick="showComingSoon('Персонал')" class="header-nav hover:text-blue-800 transition-colors">

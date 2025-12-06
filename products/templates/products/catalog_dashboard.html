@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Каталог товаров{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style="margin-left: 150px">
+    <div class="flex gap-6">
+        <!-- Левая колонка: Статистика -->
+        <div class="flex flex-col gap-6" style="width: 450px;">
+            <!-- Карточка статистики -->
+            <div class="card-style p-6" style="min-height: 200px; border: 1px solid #6b848d;">
+                <div class="flex items-center mb-6" style='margin-left: 50px'>
+                    <h2 class="header-title">Статистика каталога</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <img src="{% static 'products/icon_box.png' %}" alt="Товары" class="w-5 h-5 mr-3">
+                        <div>
+                            <div class="text-sm text-gray-600">Всего товаров</div>
+                            <div class="font-bold text-lg text-gray-900">{{ total_products }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <img src="{% static 'products/icpn_sun.png' %}" alt="Сумма" class="w-5 h-5 mr-3">
+                        <div>
+                            <div class="text-sm text-gray-600">Сумма товаров</div>
+                            <div class="font-bold text-lg text-gray-900">{{ total_value|floatformat:2 }} ₽</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Быстрые действия -->
+            <div class="card-style p-6" style="border: 1px solid #6b848d;">
+                <h3 class="header-title mb-4">Действия</h3>
+                <div class="space-y-3">
+                    <a href="{% url 'products:product_create' %}" 
+                       class="btn-primary w-full py-3 flex items-center justify-center">
+                        Добавить товар
+                    </a>
+                    
+                    <a href="{% url 'products:product_list' %}" 
+                       class="btn-secondary w-full py-3 flex items-center justify-center">
+                        <img src="{% static 'products/icon_detail.png' %}" alt="Список" class="w-5 h-5 mr-2">
+                        Список всех товаров
+                    </a>
+                    
+                    <a href="{% url 'products:supplier_create' %}" 
+                       class="w-full py-3 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <img src="{% static 'products/icon_add.png' %}" alt="Поставщики" class="w-5 h-5 mr-2 text-gray-600">
+                        Добавить поставщика
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая колонка: Последние товары -->
+        <div class="card-style p-6" style="width: 700px; min-height: 600px; border: 1px solid #6b848d;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="header-title">Последние добавленные товары</h2>
+                <a href="{% url 'products:product_list' %}" class="text-blue-600 hover:text-blue-800">
+                    Все товары →
+                </a>
+            </div>
+            
+            <div class="space-y-4">
+                {% for product in recent_products %}
+                <div class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                    {% with product.images.first as main_image %}
+                    <div class="w-16 h-16 mr-4 bg-gray-100 rounded-lg flex items-center justify-center">
+                        {% if main_image %}
+                        <img src="{{ main_image.image.url }}" 
+                             class="w-full h-full object-cover rounded-lg">
+                        {% else %}
+                        <img src="{% static 'products/icon-box.png' %}" alt="Нет фото" class="w-8 h-8 text-gray-400">
+                        {% endif %}
+                    </div>
+                    {% endwith %}
+                    
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <div>
+                                <a href="{% url 'products:product_detail' product.pk %}" 
+                                   class="font-semibold text-gray-900 hover:text-blue-600">
+                                    {{ product.name }}
+                                </a>
+                                <div class="text-sm text-gray-500 mt-1">
+                                    <span class="mr-3">Арт: {{ product.sku }}</span>
+                                    <span>Категория: {{ product.category.name }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right">
+                                <div class="font-bold text-lg">{{ product.selling_price }} ₽</div>
+                                <div class="text-sm {% if product.is_low_stock %}text-red-600{% else %}text-green-600{% endif %}">
+                                    {{ product.quantity }} шт. на складе
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-10 text-gray-500">
+                    <img src="{% static 'products/icon-box.png' %}" alt="Нет товаров" class="w-16 h-16 mx-auto mb-3 opacity-50">
+                    <p class="text-lg">Товары еще не добавлены</p>
+                    <a href="{% url 'products:product_create' %}" class="btn-primary mt-4 inline-block">
+                        <img src="{% static 'products/icon-add.png' %}" alt="Добавить" class="w-5 h-5 inline mr-2">
+                        Добавить первый товар
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Поиск -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h3 class="header-title mb-4">Быстрый поиск</h3>
+                <form method="get" action="{% url 'products:product_list' %}" class="flex gap-2">
+                    <input type="text" 
+                           name="search" 
+                           placeholder="Поиск по названию или артикулу"
+                           class="dotted-input flex-1">
+                    <button type="submit" class="btn-primary px-6 flex items-center">
+                       Найти
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

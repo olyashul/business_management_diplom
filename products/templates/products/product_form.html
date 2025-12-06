@@ -1,0 +1,170 @@
+<!-- products/templates/products/product_form.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style="margin-left: 150px; max-width: 800px;">
+    <div class="mb-6">
+        <h1 class="header-title mb-2">{{ title }}</h1>
+        <a href="{% url 'products:product_list' %}" class="text-blue-600 hover:text-blue-800">
+            ← Назад к списку товаров
+        </a>
+    </div>
+    
+    <div class="card-style p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Основная информация -->
+            <div>
+                <h3 class="header-title mb-4">Основная информация</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Артикул *
+                        </label>
+                        {{ form.sku }}
+                        {% if form.sku.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.sku.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Название товара *
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Категория *
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.category.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Поставщик
+                        </label>
+                        {{ form.supplier }}
+                        {% if form.supplier.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.supplier.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Описание -->
+            <div>
+                <h3 class="header-title mb-4">Описание</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Краткое описание
+                        </label>
+                        {{ form.short_description }}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Полное описание
+                        </label>
+                        {{ form.description }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Цены и остатки -->
+            <div>
+                <h3 class="header-title mb-4">Цены и остатки</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Закупочная цена *
+                        </label>
+                        {{ form.purchase_price }}
+                        {% if form.purchase_price.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.purchase_price.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Розничная цена *
+                        </label>
+                        {{ form.selling_price }}
+                        {% if form.selling_price.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.selling_price.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Количество на складе *
+                        </label>
+                        {{ form.quantity }}
+                        {% if form.quantity.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.quantity.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Минимальный остаток
+                        </label>
+                        {{ form.min_quantity }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Статус -->
+            <div>
+                <label class="flex items-center">
+                    {{ form.is_active }}
+                    <span class="ml-2 text-sm text-gray-700">Товар активен (доступен для продаж)</span>
+                </label>
+            </div>
+            
+            <!-- Изображения -->
+            <div>
+                <h3 class="header-title mb-4">Изображения</h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Загрузить изображения
+                    </label>
+                    <input type="file" 
+                           name="images" 
+                           multiple 
+                           accept="image/*"
+                           class="dotted-input w-full">
+                    <p class="text-xs text-gray-500 mt-1">
+                        Можно загрузить несколько изображений. Первое изображение будет основным.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Кнопки -->
+            <div class="pt-6 flex gap-4">
+                <button type="submit" class="btn-primary px-8">
+                    Сохранить
+                </button>
+                <a href="{% url 'products:product_list' %}" class="btn-secondary px-8">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
