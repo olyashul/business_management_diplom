@@ -172,7 +172,6 @@ function addTask() {
     })
     .then(response => response.json())
     .then(data => {
-        // Если сервер вернул ID, обновляем временный ID
         if (data.id) {
             const tempTask = document.getElementById('task-' + tempId);
             if (tempTask) {
@@ -181,7 +180,6 @@ function addTask() {
             }
         }
         
-        // Очищаем форму
         form.reset();
         // Устанавливаем сегодняшнюю дату по умолчанию
         const today = new Date().toISOString().split('T')[0];

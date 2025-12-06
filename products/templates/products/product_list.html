@@ -159,17 +159,13 @@
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <div class="flex gap-2">
-                                <a href="{% url 'products:product_detail' product.pk %}" 
-                                   class="text-blue-600 hover:text-blue-800" title="Просмотр">
-                                    <i class="fas fa-eye"></i>
-                                </a>
                                 <a href="{% url 'products:product_update' product.pk %}" 
                                    class="text-gray-600 hover:text-gray-800" title="Редактировать">
-                                    <i class="fas fa-edit"></i>
+                                    <img src="{% static 'products/icon_edit.png' %}" alt="Удалить">
                                 </a>
                                 <a href="{% url 'products:product_delete' product.pk %}" 
                                    class="text-red-600 hover:text-red-800" title="Удалить">
-                                    <i class="fas fa-trash"></i>
+                                    <img src="{% static 'products/icon_del_mini.png' %}" alt="Удалить">
                                 </a>
                             </div>
                         </td>

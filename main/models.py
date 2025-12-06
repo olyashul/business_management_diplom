@@ -14,17 +14,3 @@ class Task(models.Model):
 
     def __str__(self):
         return f"{self.title} ({'Выполнена' if self.is_completed else 'Не выполнена'})"
-
-class Shift(models.Model):
-    date = models.DateField(verbose_name="Дата смены", help_text="Дата смены, выбираемая пользователем.")
-    start_time = models.TimeField(default='09:00', editable=False, verbose_name="Время начала", help_text="Фиксированное: 09:00.")
-    end_time = models.TimeField(default='20:00', editable=False, verbose_name="Время окончания", help_text="Фиксированное: 20:00.")
-    user = models.ForeignKey(ManagementUser, on_delete=models.CASCADE, related_name='shifts', verbose_name="Пользователь", help_text="Смена привязана к директору/сотруднику.")
-
-    class Meta:
-        verbose_name = "Смена"
-        verbose_name_plural = "Смены"
-        unique_together = ('date', 'user')  \
-
-    def __str__(self):
-        return f"Смена {self.user} на {self.date} ({self.start_time}-{self.end_time})"

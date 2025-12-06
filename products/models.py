@@ -5,7 +5,6 @@ from accounts.models import ManagementUser
 import os
 
 class Supplier(models.Model):
-    """Поставщики"""
     name = models.CharField(max_length=200, verbose_name="Название поставщика")
     contact_person = models.CharField(max_length=100, verbose_name="Контактное лицо", blank=True)
     phone = models.CharField(max_length=20, verbose_name="Телефон")
@@ -25,7 +24,6 @@ class Supplier(models.Model):
 
 
 class Category(models.Model):
-    """Категории товаров"""
     name = models.CharField(max_length=100, verbose_name="Название категории")
     slug = models.SlugField(max_length=100, unique=True, verbose_name="URL", blank=True)
     description = models.TextField(verbose_name="Описание", blank=True)
@@ -48,7 +46,6 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    """Основная модель товара"""
     # Основная информация
     sku = models.CharField(max_length=50, unique=True, verbose_name="Артикул")
     name = models.CharField(max_length=200, verbose_name="Наименование товара")

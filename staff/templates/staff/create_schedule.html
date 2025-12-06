@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Составить график{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style="margin-left: 150px">
+    <div class="calendar-table">
+        <div class="mb-8">
+            <h1 class="header-title mb-2">Составить график</h1>
+            <p class="text-gray-600">Выберите дату и сотрудника для добавления смены. Нажмите на смену для удаления.</p>
+        </div>
+        
+        <div class="flex gap-8">
+            <!-- Календарь -->
+            <div class="flex-1">
+                <div class="month-navigation">
+                    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn-secondary">
+                        ← {{ prev_month_name }}
+                    </a>
+                    <h2 class="text-xl font-bold">{{ current_month_name }} {{ current_year }}</h2>
+                    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn-secondary">
+                        {{ next_month_name }} →
+                    </a>
+                </div>
+                
+                <!-- Табличный календарь -->
+                <div class="calendar-table">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-3 border bg-gray-100">ПН</th>
+                                <th class="p-3 border bg-gray-100">ВТ</th>
+                                <th class="p-3 border bg-gray-100">СР</th>
+                                <th class="p-3 border bg-gray-100">ЧТ</th>
+                                <th class="p-3 border bg-gray-100">ПТ</th>
+                                <th class="p-3 border bg-gray-100">СБ</th>
+                                <th class="p-3 border bg-gray-100">ВС</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for week in calendar_weeks %}
+                            <tr>
+                                {% for day in week %}
+                                <td class="p-3 border min-h-24 
+                                           {% if day.is_today %}today-cell{% endif %} 
+                                           {% if day.is_other_month %}other-month-cell{% endif %}">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="day-number font-bold">{{ day.day }}</span>
+                                        {% if not day.is_other_month %}
+                                        <button onclick="openAddShiftModal('{{ day.date|date:"Y-m-d" }}')"
+                                                class="add-shift-btn w-6 h-6">+</button>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if day.shifts %}
+                                    <div class="space-y-1">
+                                        {% for shift in day.shifts %}
+                                        <div class="shift-item" 
+                                             data-shift-id="{{ shift.id }}"
+                                             data-employee-name="{{ shift.person_name }}"
+                                             data-date="{{ day.date|date:'Y-m-d' }}"
+                                             onclick="confirmDeleteShift({{ shift.id }}, '{{ shift.person_name }}', '{{ day.date|date:"Y-m-d" }}')">
+                                            <div class="font-medium">{{ shift.person_short }}</div>
+                                            <div class="shift-time">{{ shift.start_time|time:"H:i" }}-{{ shift.end_time|time:"H:i" }}</div>
+                                            <button class="delete-shift-btn" onclick="event.stopPropagation(); confirmDeleteShift({{ shift.id }}, '{{ shift.person_name }}', '{{ day.date|date:"Y-m-d" }}')">
+                                                ×
+                                            </button>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Боковая панель -->
+            <div class="selection-sidebar w-80">
+                <h3 class="font-bold text-lg mb-4">Сотрудники</h3>
+                <div class="employees-list" id="employees-list">
+                    {% for employee in employees %}
+                    <div class="employee-list-item" 
+                         data-employee-id="{{ employee.id }}"
+                         onclick="selectEmployee({{ employee.id }}, '{{ employee.get_full_name|escapejs }}')">
+                        <div class="font-medium">{{ employee.get_full_name }}</div>
+                        <div class="text-sm text-gray-600">{{ employee.get_position_display }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления смены -->
+<div id="add-shift-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="header-title text-xl">Добавить смену</h2>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <form id="shift-form" method="post" action="{% url 'staff:create_schedule' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="date" id="modal-date">
+            <input type="hidden" name="employee" id="modal-employee">
+            
+            <div class="form-group">
+                <label class="block mb-2 font-semibold">Дата</label>
+                <input type="date" id="modal-date-display" readonly class="w-full p-2 border rounded bg-gray-50">
+            </div>
+            
+            <div class="form-group">
+                <label class="block mb-2 font-semibold">Сотрудник</label>
+                <input type="text" id="modal-employee-name" readonly class="w-full p-2 border rounded bg-gray-50">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="block mb-2 font-semibold">Начало *</label>
+                    <input type="time" name="start_time" required class="w-full p-2 border rounded" value="08:00">
+                </div>
+                
+                <div class="form-group">
+                    <label class="block mb-2 font-semibold">Конец *</label>
+                    <input type="time" name="end_time" required class="w-full p-2 border rounded" value="16:00">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="block mb-2 font-semibold">Примечания</label>
+                <textarea name="notes" class="w-full p-2 border rounded" rows="3" placeholder="Дополнительные заметки"></textarea>
+            </div>
+            
+            <div class="flex gap-4 mt-6">
+                <button type="submit" class="btn-primary flex-1">Добавить</button>
+                <button type="button" onclick="closeModal()" class="btn-secondary flex-1">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно для подтверждения удаления -->
+<div id="delete-confirm-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="header-title text-xl">Удаление смены</h2>
+            <button onclick="closeDeleteModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <div class="space-y-4">
+            <p id="delete-message" class="text-gray-700"></p>
+            
+            <div class="flex gap-4 mt-6">
+                <button onclick="deleteShift()" class="btn-danger flex-1">Удалить</button>
+                <button onclick="closeDeleteModal()" class="btn-secondary flex-1">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedEmployeeId = null;
+let selectedEmployeeName = null;
+let shiftToDelete = null;
+
+function openAddShiftModal(date) {
+    if (!selectedEmployeeId) {
+        alert('Сначала выберите сотрудника из списка справа');
+        return;
+    }
+    
+    document.getElementById('modal-date').value = date;
+    document.getElementById('modal-date-display').value = date;
+    document.getElementById('modal-employee').value = selectedEmployeeId;
+    document.getElementById('modal-employee-name').value = selectedEmployeeName;
+    
+    document.getElementById('add-shift-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('add-shift-modal').classList.add('hidden');
+}
+
+function selectEmployee(employeeId, employeeName) {
+    selectedEmployeeId = employeeId;
+    selectedEmployeeName = employeeName;
+    
+    // Сброс выделения
+    document.querySelectorAll('.employee-list-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // Выделение выбранного
+    const selectedItem = document.querySelector(`[data-employee-id="${employeeId}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+    }
+}
+
+// Подтверждение удаления смены
+function confirmDeleteShift(shiftId, employeeName, date) {
+    shiftToDelete = shiftId;
+    const message = `Вы уверены, что хотите удалить смену сотрудника <strong>${employeeName}</strong> на <strong>${date}</strong>?`;
+    document.getElementById('delete-message').innerHTML = message;
+    document.getElementById('delete-confirm-modal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('delete-confirm-modal').classList.add('hidden');
+    shiftToDelete = null;
+}
+
+// Удаление смены
+async function deleteShift() {
+    if (!shiftToDelete) return;
+    
+    try {
+        const response = await fetch(`/staff/shifts/${shiftToDelete}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                alert('Смена успешно удалена!');
+                closeDeleteModal();
+                // Перезагружаем страницу для обновления календаря
+                location.reload();
+            } else {
+                alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                closeDeleteModal();
+            }
+        } else {
+            alert('Ошибка сервера при удалении смены');
+            closeDeleteModal();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Ошибка при удалении смены');
+        closeDeleteModal();
+    }
+}
+
+// Закрытие модальных окон по клику на фон
+document.getElementById('add-shift-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+
+document.getElementById('delete-confirm-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+
+// Обработка отправки формы через AJAX
+document.getElementById('shift-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                alert('Смена успешно добавлена!');
+                closeModal();
+                // Перезагружаем страницу для обновления календаря
+                location.reload();
+            } else {
+                alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+            }
+        } else {
+            alert('Ошибка сервера');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Ошибка при добавлении смены');
+    }
+});
+
+// Функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -17,7 +17,7 @@ urlpatterns = [
     # Маршруты для main (dashboard, задачи и т.д.)
     path('main/', include('main.urls', namespace='main')),
     path('products/', include('products.urls')), 
-    
+    path('staff/', include('staff.urls')), 
 ]
 
 if settings.DEBUG:

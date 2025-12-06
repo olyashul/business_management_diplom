@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Персонал{% endblock %}
+
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style="margin-left: 150px; margin-top: -10px">
+    <div class="flex gap-6">
+        <!-- Левая колонка: Карточки действий -->
+        <div class="flex flex-col gap-6" style="width: 450px;">
+            <!-- Карточка "Составить график" -->
+            <div class="card-style p-6" style="min-height: 200px; border: 1px solid #6b848d; cursor: pointer;" onclick="window.location='{% url 'staff:create_schedule' %}'">
+                <div class="flex flex-col items-center justify-center h-full">
+                    <div class="mb-4">
+                        <img src="{% static 'staff/icon_work_time.png' %}" alt="График" class="w-16 h-16">
+                    </div>
+                    <h2 class="header-title text-center">Составить график</h2>
+                </div>
+            </div>
+            
+            <!-- Карточка "Добавить сотрудника" -->
+            <div class="card-style p-6" style="min-height: 200px; border: 1px solid #6b848d; cursor: pointer;" onclick="window.location='{% url 'staff:add_employee' %}'">
+                <div class="flex flex-col items-center justify-center h-full">
+                    <div class="mb-4">
+                        <img src="{% static 'staff/icon_new_employee.png' %}" alt="Сотрудник" class="w-16 h-16">
+                    </div>
+                    <h2 class="header-title text-center">Добавить сотрудника</h2>
+                </div>
+            </div>
+            
+            <!-- Статистика -->
+            <div class="card-style p-6" style="border: 1px solid #6b848d;">
+                <h3 class="header-title mb-4">Статистика персонала</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <img src="{% static 'staff/icon_new_employee.png' %}" alt="Всего сотрудников" class="w-5 h-5 mr-3">
+                        <div>
+                            <div class="text-sm text-gray-600">Всего сотрудников</div>
+                            <div class="font-bold text-lg text-gray-900">{{ total_employees }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <img src="{% static 'staff/icon_work_time.png' %}" alt="На смене сегодня" class="w-5 h-5 mr-3">
+                        <div>
+                            <div class="text-sm text-gray-600">На смене сегодня</div>
+                            <div class="font-bold text-lg text-gray-900">{{ on_duty_today }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая колонка: Сегодня на смене -->
+        <div class="card-style p-6" style="width: 700px; min-height: 600px; border: 1px solid #6b848d;">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="header-title">Сегодня на смене</h2>
+                    <div class="text-sm text-gray-500 mt-1">{{ today|date:"d.m.Y" }}</div>
+                </div>
+            </div>
+            
+            <!-- Список сотрудников на смене -->
+            <div class="space-y-4">
+                {% if today_shifts %}
+                    {% for shift in today_shifts %}
+                    <div class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="employee-avatar mr-4">
+                            {{ shift.employee.user.first_name|first }}{{ shift.employee.user.last_name|first }}
+                        </div>
+                        
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">
+                                        {{ shift.employee.user.get_full_name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500 mt-1">
+                                        <span class="mr-3">{{ shift.employee.get_position_display }}</span>
+                                        <span>Смена: {{ shift.get_shift_type_display }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <div class="font-bold text-lg text-blue-600">
+                                        {{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }}
+                                    </div>
+                                    {% if shift.is_current %}
+                                    <div class="text-sm text-green-600 font-semibold">
+                                        Сейчас на смене
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <!-- Быстрый доступ -->
+            <div class="mt-8 pt-6 border-t border-gray-200" style='margin-top: 100px'>
+                <h3 class="header-title mb-4">Быстрый доступ</h3>
+                <div class="flex gap-3">
+                    <a href="{% url 'staff:employee_list' %}" class="btn-secondary flex-1 py-3 flex items-center justify-center">
+                        <img src="{% static 'staff/icon_list.png' %}" alt="Список" class="w-5 h-5 mr-2">
+                        Все сотрудники
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
