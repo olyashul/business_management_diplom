@@ -50,26 +50,17 @@ class Product(models.Model):
     sku = models.CharField(max_length=50, unique=True, verbose_name="Артикул")
     name = models.CharField(max_length=200, verbose_name="Наименование товара")
     slug = models.SlugField(max_length=200, unique=True, verbose_name="URL", blank=True)
-    category = models.ForeignKey(Category, on_delete=models.PROTECT, 
-                                related_name='products', verbose_name="Категория")
-    supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, 
-                                null=True, blank=True, verbose_name="Поставщик")
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products', verbose_name="Категория")
+    supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL,  null=True, blank=True, verbose_name="Поставщик")
     
     # Описание
     description = models.TextField(verbose_name="Описание", blank=True)
     short_description = models.TextField(max_length=500, verbose_name="Краткое описание", blank=True)
     
     # Цены
-    purchase_price = models.DecimalField(max_digits=10, decimal_places=2, 
-                                        verbose_name="Закупочная цена", 
-                                        validators=[MinValueValidator(0)],
-                                        default=0)
-    selling_price = models.DecimalField(max_digits=10, decimal_places=2, 
-                                       verbose_name="Розничная цена", 
-                                       validators=[MinValueValidator(0)],
-                                       default=0)
-    markup_percentage = models.DecimalField(max_digits=5, decimal_places=2, 
-                                           verbose_name="Наценка %", default=0)
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Закупочная цена", validators=[MinValueValidator(0)], default=0)
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Розничная цена", validators=[MinValueValidator(0)], default=0)
+    markup_percentage = models.DecimalField(max_digits=5, decimal_places=2,verbose_name="Наценка %", default=0)
     
     # Остатки
     quantity = models.IntegerField(default=0, verbose_name="Количество на складе")
@@ -77,8 +68,7 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True, verbose_name="Активный")
     
     # Системные поля
-    created_by = models.ForeignKey(ManagementUser, on_delete=models.SET_NULL, 
-                                  null=True, verbose_name="Создал")
+    created_by = models.ForeignKey(ManagementUser, on_delete=models.SET_NULL, null=True, verbose_name="Создал")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
     
@@ -105,12 +95,10 @@ class Product(models.Model):
 
     @property
     def total_value(self):
-        """Общая стоимость товара на складе"""
         return self.quantity * self.purchase_price
 
     @property
     def is_low_stock(self):
-        """Проверка на низкий остаток"""
         return self.quantity <= self.min_quantity
 
     def __str__(self):
@@ -118,9 +106,7 @@ class Product(models.Model):
 
 
 class ProductImage(models.Model):
-    """Изображения товаров"""
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, 
-                               related_name='images', verbose_name="Товар")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images', verbose_name="Товар")
     image = models.ImageField(upload_to='products/', verbose_name="Изображение")
     is_main = models.BooleanField(default=False, verbose_name="Основное изображение")
     order = models.IntegerField(default=0, verbose_name="Порядок")
@@ -153,10 +139,8 @@ class ProductAttribute(models.Model):
 
 class ProductAttributeValue(models.Model):
     """Значения характеристик для товаров"""
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, 
-                               related_name='attributes', verbose_name="Товар")
-    attribute = models.ForeignKey(ProductAttribute, on_delete=models.CASCADE, 
-                                 verbose_name="Характеристика")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='attributes', verbose_name="Товар")
+    attribute = models.ForeignKey(ProductAttribute, on_delete=models.CASCADE,  verbose_name="Характеристика")
     value = models.CharField(max_length=200, verbose_name="Значение")
     
     class Meta:
@@ -177,22 +161,19 @@ class StockMovement(models.Model):
         ('return', 'Возврат'),
     ]
     
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, 
-                               related_name='movements', verbose_name="Товар")
-    movement_type = models.CharField(max_length=20, choices=MOVEMENT_TYPES, 
-                                    verbose_name="Тип движения")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='movements', verbose_name="Товар")
+    movement_type = models.CharField(max_length=20, choices=MOVEMENT_TYPES, verbose_name="Тип движения")
     quantity = models.IntegerField(verbose_name="Количество")
     previous_quantity = models.IntegerField(verbose_name="Предыдущий остаток")
     new_quantity = models.IntegerField(verbose_name="Новый остаток")
     comment = models.TextField(verbose_name="Комментарий", blank=True)
-    created_by = models.ForeignKey(ManagementUser, on_delete=models.SET_NULL, 
-                                  null=True, verbose_name="Кем создано")
+    created_by = models.ForeignKey(ManagementUser, on_delete=models.SET_NULL, null=True, verbose_name="Кем создано")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата движения")
     
+    sale_item = models.ForeignKey('sales.SaleItem', on_delete=models.SET_NULL,  null=True, blank=True, verbose_name="Товар в чеке")
     class Meta:
         verbose_name = "Движение товара"
         verbose_name_plural = "Движения товаров"
         ordering = ['-created_at']
-
     def __str__(self):
         return f"{self.get_movement_type_display()} {self.product.name} ({self.quantity})"

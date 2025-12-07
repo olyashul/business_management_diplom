@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Список продаж{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style="margin-left: 150px">
+    <div class="mb-6">
+        <h1 class="header-title mb-2">Список продаж</h1>
+        <p class="text-gray-600">История всех продаж и возвратов</p>
+    </div>
+    
+    <div class="card-style p-4 mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <input type="text" 
+                       name="search" 
+                       value="{{ search_query }}"
+                       placeholder="Номер чека или примечания"
+                       class="dotted-input w-full">
+            </div>
+            
+            <div>
+                <input type="date" 
+                       name="date_from" 
+                       value="{{ date_from }}"
+                       placeholder="Дата с"
+                       class="dotted-input w-full">
+            </div>
+            
+            <div>
+                <input type="date" 
+                       name="date_to" 
+                       value="{{ date_to }}"
+                       placeholder="Дата по"
+                       class="dotted-input w-full">
+            </div>
+            
+            <div>
+                <select name="payment_method" class="dotted-input w-full">
+                    <option value="">Все способы оплаты</option>
+                    {% for value, label in payment_methods %}
+                    <option value="{{ value }}" {% if payment_method == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="md:col-span-4 flex gap-2">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-search mr-2"></i>Найти
+                </button>
+                <a href="{% url 'sales:sale_list' %}" class="btn-secondary">
+                    Сбросить
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Статистика -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="card-style p-4 text-center">
+            <div class="text-sm text-gray-600">Всего продаж</div>
+            <div class="text-2xl font-bold">{{ total_sales }}</div>
+        </div>
+        <div class="card-style p-4 text-center">
+            <div class="text-sm text-gray-600">Общая сумма</div>
+            <div class="text-2xl font-bold text-green-600">{{ total_amount|floatformat:2 }} ₽</div>
+        </div>
+    </div>
+    
+    <!-- Таблица продаж -->
+    <div class="card-style p-6">
+        {% if page_obj %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-4 py-3 text-left">Номер чека</th>
+                        <th class="px-4 py-3 text-left">Дата</th>
+                        <th class="px-4 py-3 text-left">Сумма</th>
+                        <th class="px-4 py-3 text-left">Оплата</th>
+                        <th class="px-4 py-3 text-left">Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in page_obj %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <a href="{% url 'sales:sale_detail' sale.pk %}" class="font-bold text-blue-600 hover:text-blue-800">
+                                {{ sale.sale_number }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3">{{ sale.created_at|date:"d.m.Y H:i" }}</td>
+                        <td class="px-4 py-3 font-bold">{{ sale.final_amount|floatformat:2 }} ₽</td>
+                        <td class="px-4 py-3">{{ sale.get_payment_method_display }}</td>
+                        <td class="px-4 py-3">
+                            {% if sale.is_return %}
+                            <span class="text-red-600 font-semibold">Возврат</span>
+                            {% else %}
+                            <span class="text-green-600 font-semibold">Продажа</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Пагинация -->
+        {% if page_obj.has_other_pages %}
+        <div class="mt-6 flex justify-center">
+            <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}"
+                   class="px-3 py-2 border rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                <span class="px-3 py-2 bg-blue-600 text-white rounded-lg">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}&{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}"
+                   class="px-3 py-2 border rounded-lg hover:bg-gray-50">
+                    {{ num }}
+                </a>
+                {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}"
+                   class="px-3 py-2 border rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-10">
+            <i class="fas fa-receipt text-4xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">Продаж не найдено</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

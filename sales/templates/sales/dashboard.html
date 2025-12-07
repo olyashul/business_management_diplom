@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Продажи{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style="margin-left: 150px">
+    <div class="action-group mb-6 flex gap-4">
+        <a href="{% url 'sales:quick_add_sale' %}" class="add-prodazha card-style p-4 flex items-center" 
+           style="border: 1px solid #6b848d; cursor: pointer; text-decoration: none;">
+            <img src="{% static 'sales/icon_add.png' %}" alt="Добавить" class="w-6 h-6 mr-3">
+            <div class="add-text font-semibold">Добавить продажу</div>
+        </a>
+        
+        <!-- Кнопка "Удалить продажу (возврат)" -->
+        <div class="time-smen card-style p-4 flex items-center cursor-pointer" 
+             style="border: 1px solid #6b848d;"
+             onclick="showReturnModal()">
+            <img src="{% static 'sales/icon_del.png' %}" alt="Удалить" class="w-6 h-6 mr-3">
+            <div class="text-wrapper font-semibold">Удалить продажу (возврат)</div>
+        </div>
+    </div>
+    
+    <div class="flex gap-6">
+        <!-- Левая колонка: Статистика сегодня -->
+        <div class="flex flex-col gap-6" style="width: 450px;">
+            <!-- Карточка "Сегодня" -->
+            <div class="today-card card-style p-6" style="min-height: 200px; border: 1px solid #6b848d;">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="today">
+                        <div class="today-text header-title" style="margin-left: 140px">Сегодня</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Выручка -->
+                    <div class="viruch-group flex items-center">
+                        <img src="{% static 'sales/icon_viruch.png' %}" alt="Выручка" class="img-2 w-6 h-6 mr-3">
+                        <div>
+                            <div class="text-sm text-gray-600">Выручка</div>
+                            <div class="viruch-text font-bold text-lg">{{ total_revenue_today|floatformat:2 }} ₽</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Количество продаж -->
+                    <div class="prodazh-group flex items-center">
+                        <img src="{% static 'sales/icon_prodazh.png' %}" alt="Продажи" class="w-6 h-6 mr-3">
+                        <div>
+                            <div class="text-sm text-gray-600">Количество продаж</div>
+                            <div class="font-bold text-lg">{{ total_sales_today }}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Средний чек -->
+                    <div class="check-group flex items-center">
+                        <img src="{% static 'sales/icon_check.png' %}" alt="Средний чек" class="w-6 h-6 mr-3">
+                        <div>
+                            <div class="text-sm text-gray-600">Средний чек</div>
+                            <div class="font-bold text-lg">{{ average_check_today|floatformat:2 }} ₽</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Популярные товары -->
+            <div class="card-style p-6" style="border: 1px solid #6b848d;">
+                <h3 class="header-title mb-4">Популярные сегодня</h3>
+                <div class="space-y-3">
+                    {% for item in popular_items_today %}
+                    <div class="flex items-center justify-between p-2 bg-white rounded border">
+                        <div>
+                            <div class="font-medium">{{ item.product__name }}</div>
+                            <div class="text-xs text-gray-500">Арт: {{ item.product__sku }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold">{{ item.total_quantity }} шт.</div>
+                            <div class="text-sm text-gray-600">{{ item.total_amount|floatformat:2 }} ₽</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-gray-500 py-4">
+                        Пока нет продаж за сегодня
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая колонка: Последние продажи и поиск -->
+        <div class="card-style p-6" style="width: 700px; min-height: 600px; border: 1px solid #6b848d;">
+            <!-- Список последних продаж -->
+            <div class="mb-6">
+                <h2 class="header-title mb-4">Последние продажи</h2>
+                <div class="space-y-4">
+                    {% for sale in recent_sales %}
+                    <div class="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-semibold text-gray-900">
+                                        Чек #{{ sale.sale_number }}
+                                    </div>
+                                    <div class="text-sm text-gray-500 mt-1">
+                                        <span>{{ sale.created_at|date:"d.m.Y H:i" }}</span>
+                                        <span class="mx-2">•</span>
+                                        <span>{{ sale.get_payment_method_display }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <div class="font-bold text-lg text-blue-600">
+                                        {{ sale.final_amount|floatformat:2 }} ₽
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        {{ sale.item_count }} товаров
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Поиск -->
+            <div class="mt-8 pt-6 border-t border-gray-200" style = "margin-top: 50px">
+                <h3 class="header-title mb-4">Поиск продаж</h3>
+                <div class="find-search-group">
+                    <form method="get" action="{% url 'sales:sale_list' %}" class="flex gap-2">
+                        <input type="text" 
+                               name="search" 
+                               placeholder="Поиск по номеру чека или примечаниям"
+                               class="dotted-input flex-1">
+                        <button type="submit" class="button-add btn-primary px-6 flex items-center">
+                           Найти
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для возврата -->
+<div id="return-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="header-title text-xl">Возврат продажи</h2>
+            <button onclick="closeReturnModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        
+        <div class="space-y-4">
+            <p class="text-gray-700">Для оформления возврата перейдите на страницу конкретной продажи и нажмите кнопку "Оформить возврат".</p>
+            
+            <div class="flex gap-4 mt-6">
+                <a href="{% url 'sales:sale_list' %}" class="btn-primary flex-1 text-center">
+                    Перейти к списку продаж
+                </a>
+                <button onclick="closeReturnModal()" class="btn-secondary flex-1">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showReturnModal() {
+    document.getElementById('return-modal').classList.remove('hidden');
+}
+
+function closeReturnModal() {
+    document.getElementById('return-modal').classList.add('hidden');
+}
+
+// Закрытие модального окна по клику на фон
+document.getElementById('return-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeReturnModal();
+    }
+});
+</script>
+{% endblock %}

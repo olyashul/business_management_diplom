@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Удалить продажу{% endblock %}
+
+{% block content %}
+<div class="form-container" style="max-width: 600px;">
+    <div class="form-card">
+        <h1 class="form-title">
+            <i class="fas fa-trash text-red-500 mr-2"></i>
+            Удалить продажу
+        </h1>
+        
+        <div class="form-section">
+            <div class="text-center mb-6">
+                <div class="text-xl font-bold text-red-600 mb-2">Подтверждение удаления</div>
+                <p class="text-gray-700">Вы собираетесь удалить чек:</p>
+                <div class="mt-2 font-bold text-lg">#{{ sale.sale_number }}</div>
+                <div class="mt-1 text-gray-600">от {{ sale.created_at|date:"d.m.Y H:i" }}</div>
+                <div class="mt-2 font-bold text-2xl text-blue-600">{{ sale.final_amount|floatformat:2 }} ₽</div>
+                <div class="mt-2 text-gray-600">{{ sale.item_count }} товаров</div>
+            </div>
+            
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                    <div>
+                        <div class="font-semibold text-red-700">Внимание!</div>
+                        <p class="text-red-600 mt-1">
+                            Эта операция необратима. Продажа и все связанные данные будут удалены.
+                            Рассмотрите возможность оформления возврата вместо удаления.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                <div class="form-buttons">
+                    <button type="submit" class="btn-danger flex-1">
+                        <i class="fas fa-trash mr-2"></i> Удалить навсегда
+                    </button>
+                    <a href="{% url 'sales:sale_detail' sale.pk %}" class="btn-secondary flex-1 text-center">
+                        Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

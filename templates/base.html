@@ -538,9 +538,9 @@
 
          
             <nav class="flex justify-center h-full items-center space-x-24">  <!-- Было space-x-16 -->
-                <a href="#" onclick="showComingSoon('Продажи')" class="header-nav hover:text-blue-800 transition-colors">
-                     Продажи
-                 </a>
+                <a href="{% url 'sales:sales_dashboard' %}" class="header-nav hover:text-blue-800 transition-colors">
+                    Продажи
+                </a>
                 <a href="{% url 'products:catalog_dashboard' %}" class="header-nav hover:text-blue-800 transition-colors">
                     Каталог
                 </a>

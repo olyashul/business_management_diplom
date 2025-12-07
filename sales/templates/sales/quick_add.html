@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Быстрая продажа{% endblock %}
+
+{% block content %}
+<div class="form-container" style="max-width: 800px;">
+    <div class="form-card">
+        <h1 class="form-title">
+            <img src="{% static 'sales/icon_fast_sale.png' %}" alt="Продажа" style="width: 32px; height: 32px;">
+            Быстрая продажа
+        </h1>
+        
+        <form method="post" class="space-y-4" id="sale-form">
+            {% csrf_token %}
+            <input type="hidden" name="items" id="items-input" value="[]">
+            
+            <!-- Товары -->
+            <div class="form-section">
+                <h3 class="section-title">Товары</h3>
+                
+                <!-- Поиск товара -->
+                <div class="form-group">
+                    <label class="block mb-1 font-semibold">Поиск товара</label>
+                    <div class="form-input-wrapper">
+                        <input type="text" 
+                               id="product-search" 
+                               placeholder="Название или артикул" 
+                               class="form-input"
+                               autocomplete="off">
+                    </div>
+                    <div id="search-results" class="hidden mt-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg bg-white"></div>
+                </div>
+                
+                <!-- Список товаров -->
+                <div id="cart-items" class="space-y-3 mt-4">
+                    <div class="text-center text-gray-500 py-6" id="empty-cart-message">
+                        <i class="fas fa-shopping-cart text-2xl mb-2 opacity-50"></i>
+                        <p>Товары не добавлены</p>
+                    </div>
+                </div>
+                
+                <!-- Итоговая сумма -->
+                <div class="mt-6 pt-4 border-t border-gray-300">
+                    <div class="flex justify-between items-center">
+                        <div class="text-lg font-semibold">Итого:</div>
+                        <div class="text-2xl font-bold text-blue-600" id="total-amount">0.00 ₽</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Информация о продаже -->
+            <div class="form-section">
+                <h3 class="section-title">Информация о продаже</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="block mb-1 font-semibold">Способ оплаты *</label>
+                        <div class="form-input-wrapper">
+                            <select name="payment_method" id="payment_method" required class="form-select">
+                                {% for value, label in form.fields.payment_method.choices %}
+                                <option value="{{ value }}" {% if form.payment_method.value == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="block mb-1 font-semibold">Скидка (₽)</label>
+                        <div class="form-input-wrapper">
+                            <input type="number" 
+                                   name="discount" 
+                                   id="discount" 
+                                   value="{{ form.discount.value|default:'0' }}"
+                                   min="0" 
+                                   step="0.01" 
+                                   class="form-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="block mb-1 font-semibold">Примечания</label>
+                    <div class="form-input-wrapper">
+                        <textarea name="notes" rows="2" class="form-textarea">{{ form.notes.value|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <button type="submit" class="btn-primary flex-1">Оформить продажу</button>
+                <a href="{% url 'sales:sales_dashboard' %}" class="btn-secondary flex-1 text-center">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.cart-item {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cart = [];
+    const cartItems = document.getElementById('cart-items');
+    const itemsInput = document.getElementById('items-input');
+    const productSearch = document.getElementById('product-search');
+    const searchResults = document.getElementById('search-results');
+    
+    // Поиск товаров
+    productSearch.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length < 2) {
+            searchResults.classList.add('hidden');
+            return;
+        }
+        
+        fetch(`/sales/api/search-product/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.results.length === 0) {
+                    searchResults.innerHTML = '<div class="p-3 text-center text-gray-500">Товары не найдены</div>';
+                    searchResults.classList.remove('hidden');
+                    return;
+                }
+                
+                let html = '';
+                data.results.forEach(product => {
+                    html += `
+                        <div class="search-result p-3 border-b hover:bg-blue-50 cursor-pointer" 
+                             data-id="${product.id}"
+                             data-name="${product.name}"
+                             data-sku="${product.sku}"
+                             data-price="${product.price}"
+                             data-quantity="${product.quantity}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="font-medium">${product.name}</div>
+                                    <div class="text-sm text-gray-500">Арт: ${product.sku}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold">${product.price} ₽</div>
+                                    <div class="text-sm text-gray-500">${product.quantity} шт.</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                searchResults.innerHTML = html;
+                searchResults.classList.remove('hidden');
+                
+                // Добавление товара по клику
+                document.querySelectorAll('.search-result').forEach(item => {
+                    item.addEventListener('click', function() {
+                        addToCart({
+                            id: this.dataset.id,
+                            name: this.dataset.name,
+                            sku: this.dataset.sku,
+                            price: parseFloat(this.dataset.price),
+                            max_quantity: parseInt(this.dataset.quantity)
+                        });
+                        productSearch.value = '';
+                        searchResults.classList.add('hidden');
+                    });
+                });
+            });
+    });
+    
+    // Добавление товара в корзину
+    function addToCart(product) {
+        const existing = cart.find(item => item.id == product.id);
+        
+        if (existing) {
+            existing.quantity += 1;
+            updateCartItem(existing);
+        } else {
+            const item = {
+                id: product.id,
+                name: product.name,
+                sku: product.sku,
+                price: product.price,
+                quantity: 1,
+                max_quantity: product.max_quantity
+            };
+            cart.push(item);
+            renderCartItem(item);
+        }
+        
+        updateCart();
+    }
+    
+    // Рендеринг товара в корзине
+    function renderCartItem(item) {
+        document.getElementById('empty-cart-message').classList.add('hidden');
+        
+        const div = document.createElement('div');
+        div.className = 'cart-item bg-white border border-gray-200 rounded-lg p-3';
+        div.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div class="flex-1">
+                    <div class="font-semibold">${item.name}</div>
+                    <div class="text-sm text-gray-500">${item.price} ₽ × <span class="quantity-display">${item.quantity}</span> шт.</div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-1">
+                        <button type="button" class="quantity-btn w-7 h-7 border rounded bg-gray-50 hover:bg-gray-100" data-action="minus">-</button>
+                        <input type="number" value="${item.quantity}" min="1" max="${item.max_quantity}" 
+                               class="quantity-input w-12 text-center border rounded" data-id="${item.id}">
+                        <button type="button" class="quantity-btn w-7 h-7 border rounded bg-gray-50 hover:bg-gray-100" data-action="plus">+</button>
+                    </div>
+                    <div class="font-bold text-blue-600 min-w-20 text-right">${(item.price * item.quantity).toFixed(2)} ₽</div>
+                    <button type="button" class="remove-btn text-red-500 hover:text-red-700" data-id="${item.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        cartItems.prepend(div);
+        
+        // Назначение обработчиков
+        const minusBtn = div.querySelector('[data-action="minus"]');
+        const plusBtn = div.querySelector('[data-action="plus"]');
+        const quantityInput = div.querySelector('.quantity-input');
+        const removeBtn = div.querySelector('.remove-btn');
+        
+        minusBtn.addEventListener('click', () => updateQuantity(item.id, -1));
+        plusBtn.addEventListener('click', () => updateQuantity(item.id, 1));
+        quantityInput.addEventListener('change', function() {
+            let qty = parseInt(this.value) || 1;
+            if (qty < 1) qty = 1;
+            if (qty > item.max_quantity) qty = item.max_quantity;
+            setQuantity(item.id, qty);
+        });
+        removeBtn.addEventListener('click', () => removeItem(item.id));
+    }
+    
+    // Обновление количества
+    function updateQuantity(id, delta) {
+        const item = cart.find(i => i.id == id);
+        if (!item) return;
+        
+        let newQty = item.quantity + delta;
+        if (newQty < 1) newQty = 1;
+        if (newQty > item.max_quantity) {
+            alert(`Максимальное количество: ${item.max_quantity} шт.`);
+            return;
+        }
+        
+        setQuantity(id, newQty);
+    }
+    
+    function setQuantity(id, quantity) {
+        const item = cart.find(i => i.id == id);
+        if (!item) return;
+        
+        item.quantity = quantity;
+        updateCart();
+    }
+    
+    // Удаление товара
+    function removeItem(id) {
+        const index = cart.findIndex(i => i.id == id);
+        if (index !== -1) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+    }
+    
+    // Обновление корзины
+    function updateCart() {
+        // Обновляем отображение
+        document.querySelectorAll('.cart-item').forEach(el => el.remove());
+        cart.forEach(item => {
+            const existingDiv = document.querySelector(`.quantity-input[data-id="${item.id}"]`);
+            if (existingDiv) {
+                existingDiv.value = item.quantity;
+                existingDiv.closest('.cart-item').querySelector('.quantity-display').textContent = item.quantity;
+                const priceEl = existingDiv.closest('.cart-item').querySelector('.font-bold.text-blue-600');
+                priceEl.textContent = (item.price * item.quantity).toFixed(2) + ' ₽';
+            } else {
+                renderCartItem(item);
+            }
+        });
+        
+        // Обновляем итоги
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const final = Math.max(0, total - discount);
+        
+        document.getElementById('total-amount').textContent = final.toFixed(2) + ' ₽';
+        
+        // Показываем сообщение, если корзина пуста
+        if (cart.length === 0) {
+            document.getElementById('empty-cart-message').classList.remove('hidden');
+        }
+        
+        // Сохраняем товары в скрытое поле
+        itemsInput.value = JSON.stringify(cart.map(item => ({
+            product_id: item.id,
+            quantity: item.quantity,
+            price: item.price
+        })));
+    }
+    
+    // Обновление при изменении скидки
+    document.getElementById('discount').addEventListener('input', updateCart);
+    
+    // Обработка отправки формы
+    document.getElementById('sale-form').addEventListener('submit', function(e) {
+        if (cart.length === 0) {
+            e.preventDefault();
+            alert('Добавьте хотя бы один товар');
+            return;
+        }
+    });
+    
+    // Закрытие результатов поиска при клике вне
+    document.addEventListener('click', function(e) {
+        if (!productSearch.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %}

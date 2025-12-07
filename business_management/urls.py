@@ -6,18 +6,13 @@ from django.conf.urls.static import static
 from accounts.views import home_view  # Импортируем из accounts.views
 
 urlpatterns = [
-    # Админка Django
     path('admin/', admin.site.urls),
-    
-    # Главная страница
     path('', home_view,  name='main'),
-    
-    # Маршруты для аккаунтов
     path('accounts/', include('accounts.urls')),
-    # Маршруты для main (dashboard, задачи и т.д.)
     path('main/', include('main.urls', namespace='main')),
     path('products/', include('products.urls')), 
     path('staff/', include('staff.urls')), 
+    path('sales/', include('sales.urls')),
 ]
 
 if settings.DEBUG:

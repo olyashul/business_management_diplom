@@ -234,7 +234,6 @@ async function deleteShift() {
         if (response.ok) {
             const data = await response.json();
             if (data.success) {
-                alert('Смена успешно удалена!');
                 closeDeleteModal();
                 // Перезагружаем страницу для обновления календаря
                 location.reload();
@@ -284,7 +283,6 @@ document.getElementById('shift-form').addEventListener('submit', async function(
         if (response.ok) {
             const data = await response.json();
             if (data.success) {
-                alert('Смена успешно добавлена!');
                 closeModal();
                 // Перезагружаем страницу для обновления календаря
                 location.reload();

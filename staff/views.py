@@ -105,8 +105,6 @@ def quick_add_shift(request):
                     'start_time': shift.start_time.strftime('%H:%M'),
                     'end_time': shift.end_time.strftime('%H:%M'),
                 })
-            
-            messages.success(request, f'Смена добавлена!')
             return redirect('staff:staff_dashboard')
         else:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -159,9 +157,7 @@ def create_schedule(request):
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({
                         'success': True,
-                        'message': 'Смена успешно добавлена'
                     })
-                messages.success(request, 'Смена успешно добавлена')
                 return redirect('staff:create_schedule')
             
             except Exception as e:
@@ -266,7 +262,6 @@ def delete_shift_ajax(request, pk):
             
             return JsonResponse({
                 'success': True,
-                'message': f'Смена {employee_name} на {date} удалена'
             })
         
         except Exception as e:
