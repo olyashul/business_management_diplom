@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ report.get_report_type_display }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style="margin-left: 150px">
+    <div class="mb-6">
+        <h1 class="header-title mb-2">{{ report.get_report_type_display }}</h1>
+        <p class="text-gray-600">Период: {{ report.start_date }} - {{ report.end_date }}</p>
+    </div>
+    
+    <div class="card-style p-6" style="border: 1px solid #6b848d;">
+        {% if report_data.report_type == 'financial' %}
+            <!-- Финансовый отчет -->
+            <div class="mb-6">
+                <h2 class="header-title mb-4">Финансовая статистика</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Всего продаж</div>
+                        <div class="text-2xl font-bold text-blue-700">{{ report_data.total_sales }}</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Общая выручка</div>
+                        <div class="text-2xl font-bold text-green-700">{{ report_data.total_amount|floatformat:2 }} ₽</div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Средний чек</div>
+                        <div class="text-2xl font-bold text-purple-700">{{ report_data.average_check|floatformat:2 }} ₽</div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Возвратов</div>
+                        <div class="text-2xl font-bold text-yellow-700">{{ report_data.total_returns }}</div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Сумма возвратов</div>
+                        <div class="text-2xl font-bold text-red-700">{{ report_data.return_amount|floatformat:2 }} ₽</div>
+                    </div>
+                    <div class="bg-teal-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Чистая выручка</div>
+                        <div class="text-2xl font-bold text-teal-700">{{ report_data.net_amount|floatformat:2 }} ₽</div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if report_data.detailed_sales %}
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-4">Детализация продаж</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-3 border text-left">№ чека</th>
+                                <th class="p-3 border text-left">Дата</th>
+                                <th class="p-3 border text-left">Время</th>
+                                <th class="p-3 border text-left">Товары</th>
+                                <th class="p-3 border text-left">Сумма</th>
+                                <th class="p-3 border text-left">Оплата</th>
+                                <th class="p-3 border text-left">Прибыль</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in report_data.detailed_sales %}
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-3 border">{{ sale.number }}</td>
+                                <td class="p-3 border">{{ sale.date }}</td>
+                                <td class="p-3 border">{{ sale.time|time:"H:i" }}</td>
+                                <td class="p-3 border">{{ sale.items_count }} шт.</td>
+                                <td class="p-3 border font-bold">{{ sale.final_amount|floatformat:2 }} ₽</td>
+                                <td class="p-3 border">{{ sale.payment_method }}</td>
+                                <td class="p-3 border text-green-600">{{ sale.profit|floatformat:2 }} ₽</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+        {% elif report_data.report_type == 'products' %}
+            <!-- Отчет по товарам -->
+            <div class="mb-6">
+                <h2 class="header-title mb-4">Статистика по товарам</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Всего товаров</div>
+                        <div class="text-2xl font-bold text-blue-700">{{ report_data.total_products }}</div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Продано единиц</div>
+                        <div class="text-2xl font-bold text-green-700">{{ report_data.total_products_sold }}</div>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Общая выручка</div>
+                        <div class="text-2xl font-bold text-purple-700">{{ report_data.total_revenue|floatformat:2 }} ₽</div>
+                    </div>
+                    <div class="bg-teal-50 p-4 rounded-lg">
+                        <div class="text-sm text-gray-600">Общая прибыль</div>
+                        <div class="text-2xl font-bold text-teal-700">{{ report_data.total_profit|floatformat:2 }} ₽</div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if report_data.products %}
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-4">Детализация по товарам ({{ report_data.category }})</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-3 border text-left">Артикул</th>
+                                <th class="p-3 border text-left">Наименование</th>
+                                <th class="p-3 border text-left">Категория</th>
+                                <th class="p-3 border text-left">Цена</th>
+                                <th class="p-3 border text-left">Продано</th>
+                                <th class="p-3 border text-left">Выручка</th>
+                                <th class="p-3 border text-left">Прибыль</th>
+                                <th class="p-3 border text-left">Остаток</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in report_data.products %}
+                            <tr class="border-b hover:bg-gray-50 {% if product.is_low_stock %}bg-red-50{% endif %}">
+                                <td class="p-3 border font-mono">{{ product.sku }}</td>
+                                <td class="p-3 border">{{ product.name }}</td>
+                                <td class="p-3 border">{{ product.category }}</td>
+                                <td class="p-3 border">{{ product.selling_price|floatformat:2 }} ₽</td>
+                                <td class="p-3 border font-bold">{{ product.quantity_sold }} шт.</td>
+                                <td class="p-3 border">{{ product.revenue|floatformat:2 }} ₽</td>
+                                <td class="p-3 border text-green-600">{{ product.profit|floatformat:2 }} ₽</td>
+                                <td class="p-3 border {% if product.is_low_stock %}text-red-600 font-bold{% endif %}">
+                                    {{ product.current_stock }} шт.
+                                    {% if product.is_low_stock %}
+                                    <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded ml-2">Мало</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if report_data.low_stock %}
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-4 text-red-600">Товары с низким остатком</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-red-100">
+                                <th class="p-3 border text-left">Артикул</th>
+                                <th class="p-3 border text-left">Наименование</th>
+                                <th class="p-3 border text-left">Категория</th>
+                                <th class="p-3 border text-left">Текущий остаток</th>
+                                <th class="p-3 border text-left">Минимальный</th>
+                                <th class="p-3 border text-left">Дефицит</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in report_data.low_stock %}
+                            <tr class="border-b hover:bg-red-50">
+                                <td class="p-3 border font-mono">{{ product.sku }}</td>
+                                <td class="p-3 border">{{ product.name }}</td>
+                                <td class="p-3 border">{{ product.category }}</td>
+                                <td class="p-3 border font-bold text-red-600">{{ product.current_stock }} шт.</td>
+                                <td class="p-3 border">{{ product.min_stock }} шт.</td>
+                                <td class="p-3 border font-bold">{{ product.deficit }} шт.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+        
+        <div class="mt-6 pt-4 border-t border-gray-300">
+            <a href="{% url 'reports:reports_dashboard' %}" class="btn-secondary">
+                ← Назад к отчетам
+            </a>
+            <button onclick="window.print()" class="btn-primary ml-2">
+                <i class="fas fa-print mr-2"></i>Печать
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
