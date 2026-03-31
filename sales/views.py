@@ -258,9 +258,6 @@ def sale_return(request, pk):
             else:
                 discount_ratio = Decimal('1')
             
-            print(f"Коэффициент скидки: {discount_ratio}")
-            print(f"Оригинальная сумма: {sale.total_amount}, Скидка: {sale.discount}, Итог: {sale.final_amount}")
-            
             # Генерируем уникальный номер чека возврата
             base_number = f"RET-{sale.sale_number}"
             if len(base_number) > 17:
@@ -297,13 +294,6 @@ def sale_return(request, pk):
                 # Цена с учетом скидки пропорционально
                 return_price = item.selling_price * discount_ratio
                 return_total = return_price * item.quantity
-                
-                print(f"Товар: {item.product.name}")
-                print(f"  Оригинальная цена: {item.selling_price}")
-                print(f"  Цена возврата: {return_price}")
-                print(f"  Количество: {item.quantity}")
-                print(f"  Сумма возврата: {return_total}")
-                
                 SaleItem.objects.create(
                     sale=return_sale,
                     product=item.product,
@@ -317,8 +307,6 @@ def sale_return(request, pk):
             return_sale.final_amount = -return_sale.final_amount
             return_sale.total_amount = -return_sale.total_amount
             return_sale.save()
-            
-            print(f"Итоговая сумма возврата: {return_sale.final_amount}")
             
             # Обновляем статистику
             today = timezone.now().date()
