@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="dashboard-container px-8 py-6">
-    <div class="card-style p-4 mb-4" style="border: 1px solid #6b848d;">
+    <div class="card-style p-4 mb-4" style="max-width: 900px; margin-left: 300px">
         <h2 class="header-title mb-8 text-lg flex justify-center" style='font-size: 24px'>Период отчета</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="form-group">
@@ -27,9 +27,9 @@
     </div>
     
     <!-- Карточки отчетов - уменьшенные -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6" style='margin-left: 100px'>
         <!-- Финансовый отчет -->
-        <div class="card-style p-4" style="border: 1px solid #6b848d; min-height: 220px;">
+        <div class="card-style p-4" style="border: 1px solid #6b848d; min-height: 220px; max-width: 500px; margin-left: 50px">
             <div class="flex flex-col h-full">
                 <div class="flex items-center mb-5 justify-center">
                     <img src="{% static 'reports/icon_finance.png' %}" alt="Финансы" class="w-11 h-11 mr-3">
@@ -46,79 +46,79 @@
             </div>
         </div>
         
-       <!-- Отчет по товарам -->
-<div class="card-style p-4" style="border: 1px solid #6b848d; min-height: 220px;">
-    <div class="flex flex-col h-full">
-        <div class="flex items-center mb-5 justify-center">
-            <img src="{% static 'reports/icon_box.png' %}" alt="Товары" class="w-11 h-11 mr-3">
-            <h2 class="header-title text-lg" style="font-size: 25px">Отчет по товарам</h2>
+            <!-- Отчет по товарам -->
+        <div class="card-style p-4" style="border: 1px solid #6b848d; min-height: 220px; max-width: 550px; margin-left: 50px">
+            <div class="flex flex-col h-full">
+                <div class="flex items-center mb-5 justify-center">
+                    <img src="{% static 'reports/icon_box.png' %}" alt="Товары" class="w-11 h-11 mr-3">
+                    <h2 class="header-title text-lg" style="font-size: 25px">Отчет по товарам</h2>
+                </div>
+                
+                <p class="text-gray-600 text-sm mb-4 flex-grow flex justify-center">
+                    Анализ продаж товаров, прибыльности и остатков
+                </p>
+                
+                <div class="mb-4">
+                    <select id="products-category" class="dotted-input w-full text-sm py-1">
+                        <option value="">Все категории</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button onclick="generateProductsReport()" class="btn-primary w-full py-2 text-sm">
+                    Сформировать Excel
+                </button>
+            </div>
         </div>
-        
-        <p class="text-gray-600 text-sm mb-4 flex-grow flex justify-center">
-            Анализ продаж товаров, прибыльности и остатков
-        </p>
-        
-        <div class="mb-4">
-            <select id="products-category" class="dotted-input w-full text-sm py-1">
-                <option value="">Все категории</option>
-                {% for category in categories %}
-                <option value="{{ category.id }}">{{ category.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <button onclick="generateProductsReport()" class="btn-primary w-full py-2 text-sm">
-            Сформировать Excel
-        </button>
-    </div>
-</div>
 
-<!-- График работы -->
-<div class="card-style p-4" style="border: 1px solid #6b848d; min-height: 220px;">
-    <div class="flex flex-col h-full">
-        <div class="flex items-center mb-5 justify-center">
-            <img src="{% static 'reports/icon_work_time.png' %}" alt="График" class="w-11 h-11 mr-3">
-            <h2 class="header-title text-lg" style="font-size: 25px">График работы</h2>
+        <!-- График работы -->
+        <div class="card-style p-4" style="border: 1px solid #6b848d; min-height: 220px; max-width: 500px; margin-left: 50px">
+            <div class="flex flex-col h-full">
+                <div class="flex items-center mb-5 justify-center">
+                    <img src="{% static 'reports/icon_work_time.png' %}" alt="График" class="w-11 h-11 mr-3">
+                    <h2 class="header-title text-lg" style="font-size: 25px">График работы</h2>
+                </div>
+                
+                <p class="text-gray-600 text-sm mb-4 flex-grow flex justify-center">
+                    Отчет о рабочих сменах и отработанных часах
+                </p>
+                
+                <div class="mb-4">
+                    <select id="schedule-employee" class="dotted-input w-full text-sm py-1">
+                        <option value="">Все сотрудники</option>
+                        {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button onclick="generateScheduleReport()" class="btn-primary w-full py-2 text-sm">
+                    Сформировать Excel
+                </button>
+            </div>
         </div>
-        
-        <p class="text-gray-600 text-sm mb-4 flex-grow flex justify-center">
-            Отчет о рабочих сменах и отработанных часах
-        </p>
-        
-        <div class="mb-4">
-            <select id="schedule-employee" class="dotted-input w-full text-sm py-1">
-                <option value="">Все сотрудники</option>
-                {% for employee in employees %}
-                <option value="{{ employee.id }}">{{ employee.get_full_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <button onclick="generateScheduleReport()" class="btn-primary w-full py-2 text-sm">
-            Сформировать Excel
-        </button>
-    </div>
-</div>
 
-<!-- Отчет за день -->
-<div class="card-style p-4" style="border: 1px solid #6b848d; min-height: 220px;">
-    <div class="flex flex-col h-full">
-        <div class="flex items-center mb-5 justify-center">
-            <img src="{% static 'reports/icon_today_otchet.png' %}" alt="За день" class="w-11 h-11 mr-3">
-            <h2 class="header-title text-lg" style="font-size: 25px">Отчет за день</h2>
+        <!-- Отчет за день -->
+        <div class="card-style p-4" style="border: 1px solid #6b848d; min-height: 220px; max-width: 550px; margin-left: 50px">
+            <div class="flex flex-col h-full">
+                <div class="flex items-center mb-5 justify-center">
+                    <img src="{% static 'reports/icon_today_otchet.png' %}" alt="За день" class="w-11 h-11 mr-3">
+                    <h2 class="header-title text-lg" style="font-size: 25px">Отчет за день</h2>
+                </div>
+                
+                <p class="text-gray-600 text-sm mb-4 flex-grow flex justify-center">
+                    Сводный отчет за выбранный день
+                </p>
+                
+                <button onclick="generateDailyReport()" class="btn-primary w-full py-2 text-sm">
+                    Сформировать Excel
+                </button>
+            </div>
         </div>
-        
-        <p class="text-gray-600 text-sm mb-4 flex-grow flex justify-center">
-            Сводный отчет за выбранный день
-        </p>
-        
-        <button onclick="generateDailyReport()" class="btn-primary w-full py-2 text-sm">
-            Сформировать Excel
-        </button>
-    </div>
-</div>
-    </div>
-</div>
+            </div>
+        </div>
 
 <!-- Модальное окно загрузки -->
 <div id="loading-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

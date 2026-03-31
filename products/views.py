@@ -26,7 +26,7 @@ def catalog_dashboard(request):
     ).count()
     
     # Последние добавленные товары
-    recent_products = Product.objects.select_related('category').order_by('-created_at')[:10]
+    recent_products = Product.objects.select_related('category').order_by('-created_at')[:2]
     
     context = {
         'total_products': total_products,
@@ -104,8 +104,6 @@ def product_create(request):
                     is_main=(i == 0),
                     order=i
                 )
-            
-            messages.success(request, f'Товар "{product.name}" успешно создан!')
             return redirect('products:product_detail', pk=product.pk)
     else:
         form = ProductForm()
@@ -146,7 +144,6 @@ def product_update(request, pk):
         form = ProductForm(request.POST, instance=product)
         if form.is_valid():
             product = form.save()
-            messages.success(request, f'Товар "{product.name}" успешно обновлен!')
             return redirect('products:product_detail', pk=product.pk)
     else:
         form = ProductForm(instance=product)
@@ -163,13 +160,11 @@ def product_update(request, pk):
 
 @login_required
 def product_delete(request, pk):
-    """Удаление товара"""
     product = get_object_or_404(Product, pk=pk)
     
     if request.method == 'POST':
         product_name = product.name
         product.delete()
-        messages.success(request, f'Товар "{product_name}" успешно удален!')
         return redirect('products:product_list')
     
     return render(request, 'products/product_confirm_delete.html', {'product': product})
@@ -237,12 +232,10 @@ from .forms import SupplierForm
 
 @login_required
 def supplier_create(request):
-    """Создание нового поставщика"""
     if request.method == 'POST':
         form = SupplierForm(request.POST)
         if form.is_valid():
             supplier = form.save()
-            messages.success(request, f'Поставщик "{supplier.name}" успешно добавлен!')
             return redirect('products:catalog_dashboard')
     else:
         form = SupplierForm()

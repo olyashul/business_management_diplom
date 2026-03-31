@@ -31,10 +31,9 @@
             </div>
             
             <div class="form-group">
-                <label class="block mb-1 font-semibold">Телефон</label>
+                <label class="block mb-1 font-semibold">Телефон *</label>
                 <div class="phone-prefix">
-                    <span>+7</span>
-                    <input type="tel" name="phone" id="id_phone" placeholder="(___) ___-__-__" value="{{ form.phone.value|default:'' }}">
+                    {{ form.phone }}
                 </div>
                 {% if form.phone.errors %}<div class="error-message">{{ form.phone.errors.0 }}</div>{% endif %}
             </div>
@@ -56,7 +55,7 @@
             <div class="form-group">
                 <label class="block mb-1 font-semibold">ИНН</label>
                 <div class="form-input-wrapper">
-                    <input type="text" name="inn" id="id_inn" placeholder="10 или 12 цифр" maxlength="12" value="{{ form.inn.value|default:'' }}">
+                    {{ form.inn }}
                 </div>
             </div>
             
@@ -70,23 +69,74 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Маска для телефона
+    // Получаем поле телефона из Django формы
     const phoneInput = document.getElementById('id_phone');
-    phoneInput.addEventListener('input', function(e) {
-        let value = this.value.replace(/\D/g, '');
-        let formattedValue = '';
-        if (value.length > 0) formattedValue = '(' + value.substring(0, 3);
-        if (value.length >= 3) formattedValue += ') ' + value.substring(3, 6);
-        if (value.length >= 6) formattedValue += '-' + value.substring(6, 8);
-        if (value.length >= 8) formattedValue += '-' + value.substring(8, 10);
-        this.value = formattedValue;
-    });
     
-    // Валидация ИНН
+    // Применяем маску телефона (ваша любимая маска)
+    phoneInput.onkeydown = function(e) {
+        inputphone(e, phoneInput);
+    };
+
+    function inputphone(e, phone) {
+        function stop(evt) {
+            evt.preventDefault();
+        }
+        
+        let key = e.key;
+        let v = phone.value;
+        let not = key.replace(/([0-9])/, '1');
+        
+        if (not === '1' || 'Backspace' === key) {
+            if ('Backspace' !== key) {
+                if (v.length < 3 || v === '') { 
+                    phone.value = '+7(';
+                }
+                if (v.length === 6) { 
+                    phone.value = v + ')';
+                }
+                if (v.length === 10) { 
+                    phone.value = v + '-';
+                }
+                if (v.length === 13) { 
+                    phone.value = v + '-';
+                }
+                if (v.length === 16) { 
+                    stop(e);
+                }
+            }
+        } else { 
+            stop(e); 
+        }
+    }
+    
+    // Автоматически форматируем при загрузке
+    if (phoneInput.value) {
+        // Форматируем существующее значение
+        let value = phoneInput.value.replace(/\D/g, '');
+        if (value.startsWith('7')) {
+            value = '+' + value;
+        }
+        phoneInput.value = formatPhone(value);
+    }
+    
+    function formatPhone(phone) {
+        let cleaned = phone.replace(/\D/g, '');
+        if (cleaned.startsWith('7')) {
+            cleaned = '+' + cleaned;
+        }
+        
+        if (cleaned.length === 12 && cleaned.startsWith('+7')) { // +71234567890
+            return cleaned.replace(/(\+7)(\d{3})(\d{3})(\d{2})(\d{2})/, '+7($2) $3-$4-$5');
+        }
+        return phone;
+    }
+    
+    // Также добавляем обработку для ИНН
     const innInput = document.getElementById('id_inn');
     innInput.addEventListener('input', function(e) {
         this.value = this.value.replace(/\D/g, '');
     });
 });
 </script>
+
 {% endblock %}

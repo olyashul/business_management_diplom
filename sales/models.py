@@ -54,22 +54,29 @@ class Sale(models.Model):
             self.sale_number = f"{date_str}{new_num:04d}"
         
         # Рассчитываем final_amount перед сохранением
-        self.final_amount = self.total_amount - self.discount
+        # Приводим к Decimal для корректного вычитания
+        from decimal import Decimal
+        total_amount = Decimal(str(self.total_amount)) if self.total_amount else Decimal('0')
+        discount = Decimal(str(self.discount)) if self.discount else Decimal('0')
+        self.final_amount = total_amount - discount
         
         super().save(*args, **kwargs)
     
     def update_totals(self):
         """Обновить суммы продажи из товаров"""
         from django.db.models import Sum
+        from decimal import Decimal
         
         # Считаем сумму всех товаров в чеке
         total = self.items.aggregate(
             total=Sum('total_price')
-        )['total'] or 0
+        )['total'] or Decimal('0')
         
         # Обновляем объект
         self.total_amount = total
-        self.final_amount = total - self.discount
+        # Приводим discount к Decimal
+        discount_decimal = Decimal(str(self.discount)) if self.discount else Decimal('0')
+        self.final_amount = total - discount_decimal
         
         # Сохраняем только нужные поля, чтобы не вызывать полный save()
         Sale.objects.filter(id=self.id).update(
@@ -105,7 +112,7 @@ class Sale(models.Model):
 class SaleItem(models.Model):
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='items', verbose_name="Продажа")
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='sale_items', verbose_name="Товар")
-    quantity = models.IntegerField(verbose_name="Количество", validators=[MinValueValidator(1)])
+    quantity = models.IntegerField(verbose_name="Количество") 
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена продажи", validators=[MinValueValidator(0)])
     purchase_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Закупочная цена", validators=[MinValueValidator(0)])
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма", default=0)
@@ -115,51 +122,71 @@ class SaleItem(models.Model):
         verbose_name_plural = "Товары в чеке"
 
     def save(self, *args, **kwargs):
-        # Рассчитываем общую сумму
-        self.total_price = self.selling_price * self.quantity
+        # Определяем, новая ли запись
+        is_new = self.pk is None
+        
+        # Рассчитываем общую сумму (используем абсолютное значение)
+        self.total_price = self.selling_price * abs(self.quantity)
         
         # Сохраняем закупочную цену из товара
         if self.product and not self.purchase_price:
             self.purchase_price = self.product.purchase_price
         
+        # Сохраняем объект
         super().save(*args, **kwargs)
         
-        # После сохранения обновляем остатки товара
-        if self.product:
-            self.product.quantity -= self.quantity
+        # Обновляем остатки товара ТОЛЬКО для новых записей
+        if self.product and is_new:
+            # Для продажи (не возврат) уменьшаем количество
+            if not self.sale.is_return:
+                self.product.quantity -= abs(self.quantity)
+                movement_type = 'outgoing'
+                comment = f"Продажа #{self.sale.sale_number}"
+            # Для возврата увеличиваем количество
+            else:
+                self.product.quantity += abs(self.quantity)
+                movement_type = 'return'
+                comment = f"Возврат #{self.sale.sale_number}"
+            
             self.product.save()
             
             # Создаем запись о движении товара
             StockMovement.objects.create(
                 product=self.product,
-                movement_type='outgoing',
-                quantity=self.quantity,
-                previous_quantity=self.product.quantity + self.quantity,  # Было до вычитания
-                new_quantity=self.product.quantity,  # Стало после вычитания
-                comment=f"Продажа #{self.sale.sale_number}",
+                movement_type=movement_type,
+                quantity=abs(self.quantity),
+                previous_quantity=self.product.quantity + (abs(self.quantity) if movement_type == 'outgoing' else -abs(self.quantity)),
+                new_quantity=self.product.quantity,
+                comment=comment,
                 created_by=self.sale.created_by
             )
-    
+
     def delete(self, *args, **kwargs):
         # При удалении товара из чека возвращаем товар на склад
         if self.product:
-            self.product.quantity += self.quantity
+            if not self.sale.is_return:
+                self.product.quantity += abs(self.quantity)
+                movement_type = 'return'
+                comment = f"Отмена продажи #{self.sale.sale_number}"
+            else:
+                self.product.quantity -= abs(self.quantity)
+                movement_type = 'outgoing'
+                comment = f"Отмена возврата #{self.sale.sale_number}"
+            
             self.product.save()
             
-            # Создаем запись о движении товара (возврат)
             StockMovement.objects.create(
                 product=self.product,
-                movement_type='return',
-                quantity=self.quantity,
-                previous_quantity=self.product.quantity - self.quantity,
+                movement_type=movement_type,
+                quantity=abs(self.quantity),
+                previous_quantity=self.product.quantity - (abs(self.quantity) if movement_type == 'return' else -abs(self.quantity)),
                 new_quantity=self.product.quantity,
-                comment=f"Возврат продажи #{self.sale.sale_number}",
+                comment=comment,
                 created_by=self.sale.created_by
             )
-        
+
         super().delete(*args, **kwargs)
-
-
+        
 class DailyStats(models.Model):
     date = models.DateField(unique=True, verbose_name="Дата")
     total_sales = models.IntegerField(default=0, verbose_name="Количество чеков")

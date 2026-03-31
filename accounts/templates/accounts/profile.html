@@ -42,19 +42,19 @@
                         hx-target="#account-details-content" 
                         hx-swap="innerHTML"
                         class="w-full btn-primary py-3 flex items-center justify-center">
-                        <img src="{% static 'accounts/icon_edit.png' %}" alt="Редактировать" class="w-5 h-5 mr-2">
+                        {% comment %} <img src="{% static 'accounts/icon_edit.png' %}" alt="Редактировать" class="w-5 h-5 mr-2"> {% endcomment %}
                         Редактировать профиль
                     </button>
                     
                     <a href="{% url 'accounts:change_password' %}" 
                        class="w-full btn-secondary py-3 flex items-center justify-center">
-                        <img src="{% static 'accounts/icon_lock.png' %}" alt="Пароль" class="w-5 h-5 mr-2">
+                        {% comment %} <img src="{% static 'accounts/icon_lock.png' %}" alt="Пароль" class="w-5 h-5 mr-2"> {% endcomment %}
                         Сменить пароль
                     </a>
                     
                     <a href="{% url 'accounts:logout' %}" 
                        class="w-full py-3 flex items-center justify-center border-2 border-red-600 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-bold">
-                        <img src="{% static 'accounts/icon_logout.png' %}" alt="Выход" class="w-5 h-5 mr-2">
+                        {% comment %} <img src="{% static 'accounts/icon_edit.png' %}" alt="Редактировать" class="w-5 h-5 mr-2"> {% endcomment %}
                         Выйти из системы
                     </a>
                 </div>
@@ -63,8 +63,8 @@
         
         <!-- Правая колонка: Детали профиля -->
         <div class="card-style p-6" style="width: 700px; min-height: 400px; border: 1px solid #6b848d;">
-            <div class="flex justify-between items-center mb-6">
-                <div>
+            <div class="flex justify-between items-center mb-20">
+                <div style='margin-top: 30px'>
                     <h2 class="header-title">Личная информация</h2>
                     <div class="text-sm text-gray-500 mt-1">Основные данные профиля</div>
                 </div>

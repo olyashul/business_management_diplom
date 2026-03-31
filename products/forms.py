@@ -137,38 +137,35 @@ class ProductSearchForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
 
-    # products/forms.py - добавляем в конец файла
-
 class SupplierForm(forms.ModelForm):
-    """Форма для добавления поставщика"""
-    
     class Meta:
         model = Supplier
         fields = ['name', 'contact_person', 'phone', 'email', 'address', 'inn']
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'supplier-input',
+                'class': 'dotted-input w-full',
                 'placeholder': 'Название компании'
             }),
             'contact_person': forms.TextInput(attrs={
-                'class': 'supplier-input',
+                'class': 'dotted-input w-full',
                 'placeholder': 'Контактное лицо (необязательно)'
             }),
             'phone': forms.TextInput(attrs={
-                'class': 'supplier-input',
-                'placeholder': '+7 (___) ___-__-__'
+                'class': 'phone-input',
+                'placeholder': '+7(___)___-____',
+                'id': 'id_phone'
             }),
             'email': forms.EmailInput(attrs={
-                'class': 'supplier-input',
+                'class': 'dotted-input w-full',
                 'placeholder': 'email@example.com (необязательно)'
             }),
             'address': forms.Textarea(attrs={
-                'class': 'supplier-input supplier-textarea',
+                'class': 'dotted-input w-full',
                 'rows': 3,
                 'placeholder': 'Полный адрес (необязательно)'
             }),
             'inn': forms.TextInput(attrs={
-                'class': 'supplier-input',
+                'class': 'dotted-input w-full',
                 'placeholder': '10 или 12 цифр (необязательно)'
             }),
         }
@@ -184,9 +181,19 @@ class SupplierForm(forms.ModelForm):
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '')
         if phone:
-            # Очищаем телефон от форматирования для хранения - используем re.sub
-            cleaned_phone = re.sub(r'\D', '', phone)  # ИСПРАВЛЕНО!
-            if len(cleaned_phone) != 11:
-                raise ValidationError('Телефон должен содержать 11 цифр (включая код страны)')
-            return '+' + cleaned_phone
+            # Очищаем телефон от форматирования
+            cleaned_phone = re.sub(r'\D', '', phone)
+            
+            # Убираем код страны (7 или 8 в начале)
+            if cleaned_phone.startswith('8'):
+                cleaned_phone = cleaned_phone[1:]  # Убираем первую 8
+            elif cleaned_phone.startswith('7'):
+                cleaned_phone = cleaned_phone[1:]  # Убираем первую 7
+            
+            # Проверяем длину (должно быть 10 цифр)
+            if len(cleaned_phone) != 10:
+                raise ValidationError('Телефон должен содержать 10 цифр после +7')
+            
+            return '+7' + cleaned_phone
         return phone
+    
