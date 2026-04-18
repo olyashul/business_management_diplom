@@ -14,4 +14,5 @@ urlpatterns = [
     path('shifts/create/', views.create_schedule, name='create_schedule'),
     path('shifts/quick-add/', views.quick_add_shift, name='quick_add_shift'),
     path('shifts/<int:pk>/delete/', views.delete_shift_ajax, name='delete_shift_ajax'),
+    path('employees/<int:pk>/', views.employee_detail, name='employee_detail'),
 ]

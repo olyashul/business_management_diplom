@@ -1,6 +1,7 @@
 from django import forms
 from .models import Employee, WorkShift
 from django.core.exceptions import ValidationError
+from decimal import Decimal, ROUND_HALF_UP 
 
 class EmployeeForm(forms.ModelForm):
     class Meta:
@@ -25,6 +26,12 @@ class EmployeeForm(forms.ModelForm):
             'position': forms.Select(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+    def clean_salary(self):
+        salary = self.cleaned_data.get('salary')
+        if salary:
+            # Округляем до целого числа
+            return salary.quantize(Decimal('1.'), rounding=ROUND_HALF_UP)
+        return salary
 
 class WorkShiftForm(forms.ModelForm):
     class Meta:

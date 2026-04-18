@@ -73,6 +73,10 @@ def add_employee(request):
     
     return render(request, 'staff/add_employee.html', {'form': form})
 
+@login_required
+def employee_detail(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    return render(request, 'staff/employee_detail.html', {'employee': employee})
 
 @login_required
 def delete_employee(request, pk):
@@ -119,10 +123,12 @@ def quick_add_shift(request):
 
 @login_required
 def employee_list(request):
-    employees = Employee.objects.all().order_by('last_name', 'first_name')
+    active_employees = Employee.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    inactive_employees = Employee.objects.filter(is_active=False).order_by('last_name', 'first_name')
     
     context = {
-        'employees': employees,
+        'active_employees': active_employees,
+        'inactive_employees': inactive_employees,
     }
     return render(request, 'staff/employee_list.html', context)
 
@@ -287,7 +293,7 @@ def edit_employee(request, pk):
             messages.success(request, 
                 f'Данные сотрудника {employee.get_full_name()} обновлены!'
             )
-            return redirect('staff:employee_list')
+            return redirect('staff:employee_detail', pk=employee.pk)
     else:
         form = EmployeeForm(instance=employee)
     

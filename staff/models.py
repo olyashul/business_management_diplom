@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from accounts.models import ManagementUser
 from django.core.exceptions import ValidationError
+from decimal import Decimal, ROUND_HALF_UP
 
 class Employee(models.Model):
     POSITIONS = [
@@ -112,6 +113,7 @@ class WorkShift(models.Model):
                 condition=models.Q(employee__isnull=False)
             ),
         ]
+    
     
     def clean(self):
         if not self.manager and not self.employee:
