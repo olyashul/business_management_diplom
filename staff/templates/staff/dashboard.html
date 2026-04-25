@@ -59,18 +59,23 @@
                     {% for shift in today_shifts %}
                     <div class="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                         <div class="employee-avatar mr-4">
-                            {{ shift.employee.user.first_name|first }}{{ shift.employee.user.last_name|first }}
+                              {% if shift.employee %}
+                                {{ shift.employee.first_name|first|upper }}{{ shift.employee.last_name|first|upper }}
+                            {% elif shift.manager %}
+                                {{ shift.manager.first_name|first|upper }}{{ shift.manager.last_name|first|upper }}
+                            {% else %}
+                                ?
+                            {% endif %}
                         </div>
                         
                         <div class="flex-1">
                             <div class="flex justify-between">
                                 <div>
                                     <div class="font-semibold text-gray-900">
-                                        {{ shift.employee.user.get_full_name }}
+                                        {{ shift.get_person_name|default:"Не назначен" }}
                                     </div>
                                     <div class="text-sm text-gray-500 mt-1">
-                                        <span class="mr-3">{{ shift.employee.get_position_display }}</span>
-                                        <span>Смена: {{ shift.get_shift_type_display }}</span>
+                                        <span class="mr-3">{{ shift.get_position|default:"—" }}</span>
                                     </div>
                                 </div>
                                 
@@ -78,16 +83,15 @@
                                     <div class="font-bold text-lg text-blue-600">
                                         {{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }}
                                     </div>
-                                    {% if shift.is_current %}
-                                    <div class="text-sm text-green-600 font-semibold">
-                                        Сейчас на смене
-                                    </div>
-                                    {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
+                {% else %}
+                    <div class="text-center text-gray-500 py-8">
+                        <p>На сегодня смен не назначено</p>
+                    </div>
                 {% endif %}
             </div>
             
@@ -105,4 +109,20 @@
     </div>
 </div>
 
+<style>
+.employee-avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+</style>
 {% endblock %}
