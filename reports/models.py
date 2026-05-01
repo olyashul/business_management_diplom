@@ -201,5 +201,88 @@ class Report(models.Model):
     
     def _generate_daily_data(self):
         """Генерация отчета за день"""
-        # Используем финансовый отчет за один день
-        return self._generate_financial_data()
+        target_date = self.start_date
+        
+        # Продажи за день
+        sales = Sale.objects.filter(
+            created_at__date=target_date,
+            is_return=False
+        )
+        
+        # Возвраты за день
+        returns = Sale.objects.filter(
+            created_at__date=target_date,
+            is_return=True
+        )
+        
+        # ===== СОТРУДНИКИ, РАБОТАВШИЕ В ЭТОТ ДЕНЬ =====
+        shifts = WorkShift.objects.filter(
+            date=target_date,
+            is_active=True
+        ).select_related('employee', 'manager')
+
+        employees_data = []
+        for shift in shifts:
+            hours = 0
+            if shift.start_time and shift.end_time:
+                start_dt = datetime.combine(shift.date, shift.start_time)
+                end_dt = datetime.combine(shift.date, shift.end_time)
+                hours = round((end_dt - start_dt).seconds / 3600, 1)
+            
+            # Определяем ФИО и должность (может быть manager или employee)
+            if shift.manager:
+                full_name = shift.manager.get_full_name()
+                position = shift.manager.position if hasattr(shift.manager, 'position') else 'Руководитель'
+            else:
+                full_name = shift.employee.get_full_name() if shift.employee else 'Не указан'
+                position = shift.employee.get_position_display() if shift.employee else ''
+            
+            employees_data.append({
+                'full_name': full_name,
+                'position': position,
+                'shift_type': '',  # У вас нет этого поля, оставляем пустым
+                'start_time': shift.start_time.strftime('%H:%M') if shift.start_time else '',
+                'end_time': shift.end_time.strftime('%H:%M') if shift.end_time else '',
+                'hours': hours,
+            })
+                
+        # ===== ПРОДАННЫЕ ТОВАРЫ =====
+        sale_items = SaleItem.objects.filter(
+            sale__created_at__date=target_date,
+            sale__is_return=False
+        ).select_related('product', 'sale')
+        
+        products_data = []
+        for item in sale_items:
+            products_data.append({
+                'name': item.product.name,
+                'sku': item.product.sku,
+                'quantity': item.quantity,
+                'price': float(item.selling_price),
+                'total': float(item.total_price),
+                'sale_time': item.sale.created_at.strftime('%H:%M'),
+                'cashier': item.sale.created_by.get_full_name() if item.sale.created_by else 'Не указан',
+            })
+        
+        # ===== РЕЗУЛЬТАТ =====
+        data = {
+            'report_type': 'daily',
+            'period': target_date.strftime('%d.%m.%Y'),
+            'generated_date': timezone.now().date(),
+            
+            # Финансовые данные
+            'total_sales': sales.count(),
+            'total_amount': float(sum(sale.final_amount for sale in sales)),
+            'total_returns': returns.count(),
+            'return_amount': float(sum(ret.final_amount for ret in returns)),
+            'net_amount': float(sum(sale.final_amount for sale in sales) - sum(ret.final_amount for ret in returns)),
+            'profit': float(sum(sale.profit for sale in sales)),
+            'average_check': float(sum(sale.final_amount for sale in sales) / sales.count()) if sales.count() > 0 else 0,
+            
+            # Новые данные
+            'employees': employees_data,
+            'products_sold': products_data,
+            'total_products_sold': len(products_data),
+        }
+        
+        return data

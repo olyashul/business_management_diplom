@@ -74,6 +74,79 @@ def _generate_excel_report(data, report):
     ws['B4'] = f"{report.start_date} - {report.end_date}"
     
     current_row = 6
+
+        # ========== ОТЧЕТ ЗА ДЕНЬ ==========
+    if data['report_type'] == 'daily':
+        # Статистика
+        ws['A6'] = 'СТАТИСТИКА ЗА ДЕНЬ'
+        ws['A6'].font = Font(bold=True, size=12)
+        
+        ws['A7'] = 'Всего продаж:'
+        ws['B7'] = data['total_sales']
+        ws['A8'] = 'Выручка:'
+        ws['B8'] = data['net_amount']
+        ws['B8'].number_format = '#,##0.00 ₽'
+        ws['A9'] = 'Прибыль:'
+        ws['B9'] = data['profit']
+        ws['B9'].number_format = '#,##0.00 ₽'
+        ws['A10'] = 'Средний чек:'
+        ws['B10'] = data['average_check']
+        ws['B10'].number_format = '#,##0.00 ₽'
+        
+        current_row = 12
+        
+        # ===== СОТРУДНИКИ =====
+        if data.get('employees') and len(data['employees']) > 0:
+            ws[f'A{current_row}'] = 'СОТРУДНИКИ НА СМЕНЕ'
+            ws[f'A{current_row}'].font = Font(bold=True, size=12)
+            current_row += 1
+            
+            headers = ['ФИО', 'Должность', 'Тип смены', 'Начало', 'Конец', 'Часов']
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=current_row, column=col)
+                cell.value = header
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.border = border
+            
+            current_row += 1
+            
+            for emp in data['employees']:
+                ws.cell(row=current_row, column=1, value=emp['full_name'])
+                ws.cell(row=current_row, column=2, value=emp['position'])
+                ws.cell(row=current_row, column=3, value=emp['shift_type'])
+                ws.cell(row=current_row, column=4, value=emp['start_time'])
+                ws.cell(row=current_row, column=5, value=emp['end_time'])
+                ws.cell(row=current_row, column=6, value=emp['hours'])
+                current_row += 1
+            
+            current_row += 1
+        
+        # ===== ПРОДАННЫЕ ТОВАРЫ =====
+        if data.get('products_sold') and len(data['products_sold']) > 0:
+            ws[f'A{current_row}'] = 'ПРОДАННЫЕ ТОВАРЫ'
+            ws[f'A{current_row}'].font = Font(bold=True, size=12)
+            current_row += 1
+            
+            headers = ['Артикул', 'Наименование', 'Кол-во', 'Цена', 'Сумма', 'Время', 'Кассир']
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=current_row, column=col)
+                cell.value = header
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.border = border
+            
+            current_row += 1
+            
+            for prod in data['products_sold']:
+                ws.cell(row=current_row, column=1, value=prod['sku'])
+                ws.cell(row=current_row, column=2, value=prod['name'])
+                ws.cell(row=current_row, column=3, value=prod['quantity'])
+                ws.cell(row=current_row, column=4, value=prod['price']).number_format = '#,##0.00 ₽'
+                ws.cell(row=current_row, column=5, value=prod['total']).number_format = '#,##0.00 ₽'
+                ws.cell(row=current_row, column=6, value=prod['sale_time'])
+                ws.cell(row=current_row, column=7, value=prod['cashier'])
+                current_row += 1
     
     if data['report_type'] == 'financial':
         # Финансовый отчет
@@ -83,7 +156,7 @@ def _generate_excel_report(data, report):
         ws['A7'] = 'Всего продаж:'
         ws['B7'] = data['total_sales']
         ws['A8'] = 'Общая выручка:'
-        ws['B8'] = data['total_amount']
+        ws['B8'] = data['net_amount']
         ws['B8'].number_format = '#,##0.00 ₽'
         ws['A9'] = 'Возвратов:'
         ws['B9'] = data['total_returns']
@@ -91,7 +164,7 @@ def _generate_excel_report(data, report):
         ws['B10'] = data['return_amount']
         ws['B10'].number_format = '#,##0.00 ₽'
         ws['A11'] = 'Чистая выручка:'
-        ws['B11'] = data['net_amount']
+        ws['B11'] = data['total_amount']
         ws['B11'].number_format = '#,##0.00 ₽'
         ws['A12'] = 'Прибыль:'
         ws['B12'] = data['total_profit']
