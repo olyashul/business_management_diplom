@@ -1,3 +1,14 @@
+"""
+******************************************************************
+Файл: products/forms.py
+Назначение: формы для приложения products (каталог товаров).
+Содержит:
+- ProductForm - форма создания/редактирования товара (артикул, название, категория, поставщик, цены, остатки);
+- ProductImageForm - форма загрузки изображений товара;
+- ProductSearchForm - форма поиска и фильтрации товаров (по названию, артикулу, категории, количеству);
+- SupplierForm - форма добавления/редактирования поставщика с валидацией телефона.
+******************************************************************
+"""
 import re
 from django import forms
 from django.core.exceptions import ValidationError
@@ -195,5 +206,4 @@ class SupplierForm(forms.ModelForm):
                 raise ValidationError('Телефон должен содержать 10 цифр после +7')
             
             return '+7' + cleaned_phone
-        return phone
-    
+        return phone  

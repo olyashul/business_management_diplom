@@ -5,5 +5,3 @@ from .models import Task
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('title', 'is_completed', 'date', 'user')
     list_filter = ('is_completed', 'user')
-
-

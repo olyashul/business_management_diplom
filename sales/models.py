@@ -1,3 +1,34 @@
+"""
+******************************************************************
+Файл: sales/models.py
+Назначение: модели данных для приложения sales (продажи и возвраты).
+Содержит:
+- Sale - модель продажи/возврата:
+  * sale_number - уникальный номер чека (генерируется автоматически);
+  * total_amount - сумма чека до скидки;
+  * discount - скидка;
+  * final_amount - итоговая сумма;
+  * payment_method - способ оплаты;
+  * is_return - признак возврата;
+  * created_by - пользователь, оформивший продажу;
+  * created_at - дата и время продажи;
+  * notes - примечания;
+  * update_totals() - метод обновления сумм из товаров;
+- SaleItem - товары в чеке:
+  * sale - связь с продажей;
+  * product - связь с товаром;
+  * quantity - количество;
+  * selling_price - цена продажи;
+  * purchase_price - закупочная цена;
+  * total_price - сумма за позицию;
+- DailyStats - ежедневная статистика:
+  * date - дата;
+  * total_sales - количество чеков;
+  * total_amount - общая выручка;
+  * average_check - средний чек;
+  * total_profit - прибыль.
+******************************************************************
+"""
 from django.db import models
 from django.core.validators import MinValueValidator
 from accounts.models import ManagementUser

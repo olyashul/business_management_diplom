@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import ManagementUser
 
-
 class ManagementUserAdmin(UserAdmin):
     list_display = ('email', 'first_name', 'last_name', 'position', 'phone')
     list_filter = ('position', 'is_staff')
@@ -36,10 +35,8 @@ class ManagementUserAdmin(UserAdmin):
     
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        # Если вдруг появится поле username (наследуется от AbstractUser), отключаем его
         if 'username' in form.base_fields:
             form.base_fields['username'].disabled = True
         return form
-
 
 admin.site.register(ManagementUser, ManagementUserAdmin)

@@ -1,3 +1,14 @@
+"""
+******************************************************************
+Файл: accounts/models.py
+
+Назначение: модели данных для приложения accounts.
+
+Содержит:
+- ManagementUserManager - кастомный менеджер пользователей (create_user, create_superuser);
+- ManagementUser - кастомная модель пользователя (email как логин, обязательные поля first_name, last_name, birth_date).
+******************************************************************
+"""
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.html import strip_tags
@@ -45,7 +56,6 @@ class ManagementUserManager(BaseUserManager):
             password=password,
             **extra_fields
         )
-
 
 class ManagementUser(AbstractUser):
 

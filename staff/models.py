@@ -1,3 +1,33 @@
+"""
+******************************************************************
+Файл: staff/models.py
+Назначение: модели данных для приложения staff (управление персоналом).
+Содержит:
+- Employee - модель сотрудника:
+  * first_name, last_name, middle_name - ФИО;
+  * position - должность (менеджер, продавец, консультант и др.);
+  * hire_date - дата приема на работу;
+  * salary - оклад;
+  * phone, email, address, passport_data - контактные и паспортные данные;
+  * birth_date - дата рождения;
+  * is_active - активен ли сотрудник;
+  * get_full_name(), get_short_name() - методы для получения ФИО.
+- WorkShift - модель рабочей смены:
+  * date - дата смены;
+  * start_time, end_time - время начала и окончания;
+  * manager - связь с руководителем (ManagementUser);
+  * employee - связь с сотрудником (Employee);
+  * is_active - активна ли смена;
+  * get_person_name(), get_person_short_name() - методы для получения имени;
+  * get_shift_duration() - расчет продолжительности смены.
+- WorkTimeRecord - модель учета рабочего времени:
+  * work_shift - связь со сменой;
+  * attendance_type - тип явки (явка, неявка, больничный, отпуск);
+  * actual_start, actual_end - фактическое время работы;
+  * hours_worked - отработано часов;
+  * overtime_hours - сверхурочные часы.
+******************************************************************
+"""
 from django.db import models
 from django.core.validators import MinValueValidator
 from accounts.models import ManagementUser

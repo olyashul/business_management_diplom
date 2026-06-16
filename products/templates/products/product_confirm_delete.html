@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Удаление товара{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-8 py-6" style="margin-left: 150px">
+    <div class="mb-6">
+        <h1 class="header-title mb-4">Удаление товара</h1>
+        
+        <!-- Карточка подтверждения -->
+        <div class="card-style p-6">
+            <div class="text-center mb-6">
+                <div class="text-6xl text-red-500 mb-4">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                    Вы уверены, что хотите удалить товар?
+                </h2>
+                <p class="text-gray-500">
+                    Это действие нельзя будет отменить
+                </p>
+            </div>
+            
+            <!-- Информация о товаре -->
+            <div class="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                            {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" 
+                                 class="w-full h-full object-cover rounded-lg">
+                            {% else %}
+                            <i class="fas fa-box text-gray-400 text-2xl"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="font-bold text-gray-800">{{ product.name }}</div>
+                            <div class="text-sm text-gray-500">Артикул: {{ product.sku }}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">Категория</div>
+                        <div class="font-medium">{{ product.category.name|default:"Без категории" }}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">Цена</div>
+                        <div class="font-bold text-blue-600">{{ product.selling_price }} ₽</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">Остаток</div>
+                        <div class="font-medium {% if product.is_low_stock %}text-red-600{% else %}text-green-600{% endif %}">
+                            {{ product.quantity }} шт.
+                            {% if product.is_low_stock %}
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded ml-2">
+                                Мало
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">Закупочная цена</div>
+                        <div class="font-medium">{{ product.purchase_price }} ₽</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500">Создан</div>
+                        <div class="font-medium">{{ product.created_at|date:"d.m.Y" }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Проверка на наличие в продажах -->
+            {% if product.sale_items.exists %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-yellow-500 mr-2"></i>
+                    <div>
+                        <div class="font-medium text-yellow-800">Внимание!</div>
+                        <div class="text-sm text-yellow-700">
+                            Этот товар есть в продажах. Удаление возможно, но данные о продажах останутся в системе.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Кнопки действий -->
+            <form method="post" class="flex justify-between items-center">
+                {% csrf_token %}
+                <a href="{% url 'products:product_list' %}" class="btn-secondary px-6">
+                    <i class="fas fa-arrow-left mr-2"></i>Отмена
+                </a>
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-trash mr-2"></i>Удалить товар
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
