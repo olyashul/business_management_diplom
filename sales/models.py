@@ -128,7 +128,12 @@ class Sale(models.Model):
         profit = 0
         for item in self.items.all():
             if item.product:
-                profit += (item.selling_price - item.product.purchase_price) * item.quantity
+                item_profit = (item.selling_price - item.product.purchase_price) * item.quantity
+                # Если это возврат — прибыль отрицательная
+                if self.is_return:
+                    profit -= item_profit
+                else:
+                    profit += item_profit
         return profit
     
     @property

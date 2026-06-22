@@ -86,6 +86,9 @@ class Report(models.Model):
             created_at__date__range=[self.start_date, self.end_date],
             is_return=True
         )
+
+        total_sales_amount = float(sum(sale.final_amount for sale in sales))
+        total_returns_amount = float(sum(ret.final_amount for ret in returns))  # отрицательное число
         
         data = {
             'report_type': 'financial',
@@ -235,12 +238,25 @@ class Report(models.Model):
             is_return=True
         )
         
+        # ===== РАССЧИТЫВАЕМ ПОКАЗАТЕЛИ С УЧЁТОМ ВОЗВРАТОВ =====
+        total_sales_amount = float(sum(sale.final_amount for sale in sales))
+        total_returns_amount = float(sum(ret.final_amount for ret in returns))
+        # Прибыль от продаж
+        sales_profit = float(sum(sale.profit for sale in sales))
+
+# Прибыль от возвратов (обычно отрицательная, так как возвращаем деньги)
+        returns_profit = float(sum(ret.profit for ret in returns))
+
+# Итоговая прибыль с учётом возвратов
+        total_profit = sales_profit + returns_profit  # returns_profit уже отрицательный
+        net_amount = total_sales_amount - total_returns_amount
+        
         # ===== СОТРУДНИКИ, РАБОТАВШИЕ В ЭТОТ ДЕНЬ =====
         shifts = WorkShift.objects.filter(
             date=target_date,
             is_active=True
         ).select_related('employee', 'manager')
-
+        
         employees_data = []
         for shift in shifts:
             hours = 0
@@ -260,12 +276,12 @@ class Report(models.Model):
             employees_data.append({
                 'full_name': full_name,
                 'position': position,
-                'shift_type': '',  # У вас нет этого поля, оставляем пустым
+                'shift_type': '',
                 'start_time': shift.start_time.strftime('%H:%M') if shift.start_time else '',
                 'end_time': shift.end_time.strftime('%H:%M') if shift.end_time else '',
                 'hours': hours,
             })
-                
+        
         # ===== ПРОДАННЫЕ ТОВАРЫ =====
         sale_items = SaleItem.objects.filter(
             sale__created_at__date=target_date,
@@ -292,12 +308,12 @@ class Report(models.Model):
             
             # Финансовые данные
             'total_sales': sales.count(),
-            'total_amount': float(sum(sale.final_amount for sale in sales)),
+            'total_amount': total_sales_amount,
             'total_returns': returns.count(),
-            'return_amount': float(sum(ret.final_amount for ret in returns)),
-            'net_amount': float(sum(sale.final_amount for sale in sales) - sum(ret.final_amount for ret in returns)),
-            'profit': float(sum(sale.profit for sale in sales)),
-            'average_check': float(sum(sale.final_amount for sale in sales) / sales.count()) if sales.count() > 0 else 0,
+            'return_amount': total_returns_amount,
+            'net_amount': net_amount,  # ЧИСТАЯ ВЫРУЧКА (с учётом возвратов)
+            'profit': total_profit,  # ПРИБЫЛЬ С УЧЁТОМ ВОЗВРАТОВ
+            'average_check': float(net_amount / sales.count()) if sales.count() > 0 else 0,
             
             # Новые данные
             'employees': employees_data,

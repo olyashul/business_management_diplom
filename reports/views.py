@@ -84,13 +84,15 @@ def _generate_excel_report(data, report):
         ws['A7'] = 'Всего продаж:'
         ws['B7'] = data['total_sales']
         ws['A8'] = 'Выручка:'
-        ws['B8'] = data['net_amount']
+        ws['B8'] = data['total_amount'] - abs(data['return_amount'])
         ws['B8'].number_format = '#,##0.00 ₽'
         ws['A9'] = 'Прибыль:'
         ws['B9'] = data['profit']
         ws['B9'].number_format = '#,##0.00 ₽'
         ws['A10'] = 'Средний чек:'
-        ws['B10'] = data['average_check']
+        # ws['B10'] = data['average_check']
+        ws['B10'] = (data['total_amount'] - abs(data['return_amount'])) / data['total_sales'] if data['total_sales'] > 0 else 0
+        ws['B10'].number_format = '#,##0.00 ₽'
         ws['B10'].number_format = '#,##0.00 ₽'
         
         current_row = 12
