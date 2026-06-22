@@ -11,9 +11,18 @@
         </a>
     </div>
     
-    <div class="card-style p-6">
-        <form method="post" enctype="multipart/form-data" class="space-y-6">
-            {% csrf_token %}
+            <div class="card-style p-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+                <ul class="list-disc pl-5">
+                    {% for error in form.non_field_errors %}
+                    <li><i class="fas fa-exclamation-circle mr-2"></i>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
             
             <!-- Основная информация -->
             <div>
@@ -120,6 +129,9 @@
                             Минимальный остаток
                         </label>
                         {{ form.min_quantity }}
+                        {% if form.min_quantity.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.min_quantity.errors.0 }}</div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

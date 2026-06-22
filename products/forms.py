@@ -74,14 +74,27 @@ class ProductForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['supplier'].queryset = Supplier.objects.all()
         self.fields['category'].queryset = Category.objects.all()
-    
+
     def clean(self):
         cleaned_data = super().clean()
         purchase_price = cleaned_data.get('purchase_price')
         selling_price = cleaned_data.get('selling_price')
+        quantity = cleaned_data.get('quantity')
+        min_quantity = cleaned_data.get('min_quantity')
         
-        if purchase_price and selling_price and selling_price < purchase_price:
-            raise ValidationError("Розничная цена не может быть ниже закупочной")
+         # ВАЛИДАЦИЯ ЦЕН 
+        if purchase_price is not None and selling_price is not None:
+            if selling_price < purchase_price:
+               
+                self.add_error('selling_price', "Розничная цена не может быть ниже закупочной")
+        
+        # ВАЛИДАЦИЯ КОЛИЧЕСТВА
+        if quantity is not None and quantity < 0:
+            self.add_error('quantity', "Количество на складе не может быть отрицательным")
+        
+        if min_quantity is not None and min_quantity < 0:
+            self.add_error('min_quantity', "Минимальный остаток не может быть отрицательным")
+        
         
         return cleaned_data
 
